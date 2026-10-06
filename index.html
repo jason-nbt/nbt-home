@@ -116,10 +116,10 @@
             if (event.target == document.getElementById('addModal')) closeModal();
         }
 
-        async function fetchLinks() {
+       async function fetchLinks() {
             const { data, error } = await supabaseClient
                 .from('company_links')
-                .select('*')
+                .select('id, name, url, category, created_by, created_at, priority') 
                 .order('priority', { ascending: false })
                 .order('name', { ascending: true });
 
@@ -150,10 +150,10 @@
 
                 // 判断是否有分类和隐藏信息
                 const categoryHtml = link.category ? `<span class="category-tag">${link.category}</span>` : '';
-                const loginHtml = link.login_info ? `
-                    <button class="btn-toggle-info" onclick="toggleInfo('info-${link.id}')">👁️ Show Info / Login</button>
-                    <div id="info-${link.id}" class="hidden-info">${link.login_info}</div>
-                ` : '';
+                const loginHtml = `
+                    <button class="btn-toggle-info" onclick="fetchAndShowInfo('${link.id}')">👁️ Show Info / Login</button>
+                    <div id="info-${link.id}" class="hidden-info"></div>
+                `;
 
                 div.innerHTML = `
                     <div>
@@ -179,7 +179,6 @@
             });
         }
 
-        // 搜索功能 (支持搜名字和分类)
         function filterLinks() {
             const keyword = document.getElementById('searchBox').value.toLowerCase();
             const filtered = allLinks.filter(link => 
@@ -189,13 +188,35 @@
             renderLinks(filtered);
         }
 
-        // 切换显示隐藏的账号密码
-        function toggleInfo(id) {
-            const infoDiv = document.getElementById(id);
+       async function fetchAndShowInfo(linkId) {
+            const infoDiv = document.getElementById(`info-${linkId}`);
+
             if (infoDiv.style.display === 'block') {
                 infoDiv.style.display = 'none';
+                return;
+            }
+
+            const pass = prompt("请输入内部访问密码 (防偷窥):");
+            if (pass !== "ilovenbt123") { 
+                alert("Password Incorrect!");
+                return;
+            }
+
+            infoDiv.style.display = 'block';
+            infoDiv.innerHTML = '<span style="color:#6c757d;">Fetching data...</span>';
+
+            // 向 Supabase 的密码表发起独立请求
+            const { data, error } = await supabaseClient
+                .from('link_secrets')
+                .select('login_info')
+                .eq('link_id', linkId)
+                .single();
+
+            if (error || !data) {
+                infoDiv.innerHTML = '无账号密码记录或获取失败。';
             } else {
-                infoDiv.style.display = 'block';
+                // 将从数据库单独拉取到的密码显示出来
+                infoDiv.innerHTML = data.login_info;
             }
         }
 
@@ -205,7 +226,6 @@
             const category = document.getElementById('linkCategory').value.trim();
             const loginInfo = document.getElementById('loginInfo').value.trim();
             const user = document.getElementById('userName').value.trim();
-            
             const priority = 0;
 
             if (!name || !url || !user) {
@@ -213,30 +233,48 @@
                 return;
             }
 
-            // 发送数据到 Supabase，包含新增的 category 和 login_info
-            const { error } = await supabaseClient
+            // 1. 先把公开信息存入主表，并要求返回插入的数据 (.select())
+            const { data: linkData, error: linkError } = await supabaseClient
                 .from('company_links')
                 .insert([{ 
                     name: name, 
                     url: url, 
                     created_by: user, 
                     priority: priority,
-                    category: category,
-                    login_info: loginInfo
-                }]);
+                    category: category
+                    // 注意：这里去掉了 login_info
+                }])
+                .select(); // 必须加上 select 才能在下面拿到刚刚生成的 id
 
-            if (error) {
-                alert("Failed to add: " + error.message);
-            } else {
-                // 清空表格并关闭悬浮窗
-                document.getElementById('linkName').value = '';
-                document.getElementById('linkUrl').value = '';
-                document.getElementById('linkCategory').value = '';
-                document.getElementById('loginInfo').value = '';
-                document.getElementById('userName').value = '';
-                closeModal();
-                fetchLinks(); 
+            if (linkError) {
+                alert("Failed to add link: " + linkError.message);
+                return;
             }
+
+            // 2. 如果填写了密码，再把密码单独存入 link_secrets 表
+            if (loginInfo && linkData && linkData.length > 0) {
+                const newLinkId = linkData[0].id;
+                
+                const { error: secretError } = await supabaseClient
+                    .from('link_secrets')
+                    .insert([{ 
+                        link_id: newLinkId, 
+                        login_info: loginInfo 
+                    }]);
+                    
+                if (secretError) {
+                    alert("Link added, but failed to save login info: " + secretError.message);
+                }
+            }
+
+            // 清空表格并关闭悬浮窗
+            document.getElementById('linkName').value = '';
+            document.getElementById('linkUrl').value = '';
+            document.getElementById('linkCategory').value = '';
+            document.getElementById('loginInfo').value = '';
+            document.getElementById('userName').value = '';
+            closeModal();
+            fetchLinks(); 
         }
 
         async function toggleImportant(id, currentPriority) {
