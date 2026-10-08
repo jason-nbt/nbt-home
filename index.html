@@ -8,11 +8,9 @@
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 1000px; margin: 40px auto; padding: 20px; background: #f4f7f6; }
         
-        /* 顶部控制栏布局 */
         .top-bar { display: flex; gap: 15px; margin-bottom: 25px; align-items: center; flex-wrap: wrap; }
         #searchBox { flex-grow: 1; font-size: 16px; padding: 12px; border: 2px solid #007bff; border-radius: 6px; outline: none; }
         
-        /* 按钮通用样式 */
         button { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
         .btn-primary { background: #007bff; color: white; font-size: 16px; }
         .btn-primary:hover { background: #0056b3; }
@@ -23,27 +21,24 @@
         .btn-toggle-info { background: #e2e8f0; color: #475569; font-size: 12px; padding: 5px 10px; margin-top: 10px; border-radius: 4px; display: inline-flex; align-items: center; gap: 5px;}
         .btn-toggle-info:hover { background: #cbd5e1; }
 
-        /* 网格排版 (卡片列表) */
         #linksContainer {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
         }
 
-        /* 单个系统卡片样式 */
         .card { 
             background: white; padding: 20px; border-radius: 10px; 
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             display: flex; flex-direction: column; justify-content: space-between;
             transition: transform 0.15s, box-shadow 0.15s;
-            cursor: grab; /* 提示可拖拽 */
+            cursor: grab;
             user-select: none;
         }
         .card:active { cursor: grabbing; }
         .card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
         .card.important { border: 2px solid #007bff; background-color: #f8fbff; }
         
-        /* 拖拽时的样式变化 */
         .card.dragging {
             opacity: 0.4;
             border: 2px dashed #007bff;
@@ -53,7 +48,6 @@
             background-color: #eef5ff;
         }
         
-        /* 卡片内部元素排版 */
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
         .sys-title { font-size: 18px; color: #007bff; text-decoration: none; font-weight: bold; line-height: 1.3; }
         .sys-title:hover { text-decoration: underline; }
@@ -61,13 +55,10 @@
         
         .meta-data { font-size: 12px; color: #6c757d; margin-top: 12px; }
         
-        /* 隐藏的账号密码框 */
         .hidden-info { display: none; background: #fff3cd; padding: 10px; border-radius: 6px; font-size: 13px; margin-top: 10px; border: 1px solid #ffeeba; color: #856404; word-break: break-all; }
 
-        /* 底部操作区 */
         .card-actions { display: flex; gap: 8px; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid #f1f3f5; }
 
-        /* 悬浮窗 (Modal) 样式 */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(3px); align-items: center; justify-content: center; }
         .modal-content { background-color: white; padding: 25px; border-radius: 10px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; max-height: 90vh; overflow-y: auto; }
         .modal-content input { width: 100%; box-sizing: border-box; padding: 10px; margin: 8px 0 15px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; }
@@ -81,24 +72,21 @@
 <body>
 
     <h2 style="color: #343a40; margin-bottom: 10px;">🔗 NBT Company System / Link Directory</h2>
-    <div class="drag-hint">💡 提示：按住任意卡片可以直接用鼠标**拖拽调整顺序**，松手即自动保存！</div>
+    <div class="drag-hint">Tip: Drag and drop any card to reorder, changes are saved automatically!</div>
 
-    <!-- 顶部操作栏 -->
     <div class="top-bar">
         <input type="text" id="searchBox" placeholder="🔍 Search system name or category..." oninput="filterLinks()">
-        <button class="btn-primary" onclick="openModal('addModal')">➕ Add New Link</button>
+        <button class="btn-primary" onclick="openModal('addModal')">+ Add New Link</button>
     </div>
 
-    <!-- 网格列表容器 -->
     <div id="linksContainer">
         <p style="color: #6c757d;">Loading...</p>
     </div>
 
-    <!-- 悬浮窗 (Add Link Modal) -->
     <div id="addModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('addModal')">&times;</span>
-            <h3 style="margin-top: 0; margin-bottom: 20px; color: #007bff;">➕ Add New Link</h3>
+            <h3 style="margin-top: 0; margin-bottom: 20px; color: #007bff;">+ Add New Link</h3>
             
             <label class="form-label">System Name *</label>
             <input type="text" id="linkName" placeholder="e.g., HR Portal" required>
@@ -119,11 +107,10 @@
         </div>
     </div>
 
-    <!-- 悬浮窗 (Edit Link Modal) -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('editModal')">&times;</span>
-            <h3 style="margin-top: 0; margin-bottom: 20px; color: #ffc107;">✏️ Edit Link</h3>
+            <h3 style="margin-top: 0; margin-bottom: 20px; color: #ffc107;">Edit Link</h3>
             
             <input type="hidden" id="editLinkId">
 
@@ -201,7 +188,7 @@
 
                 const categoryHtml = link.category ? `<span class="category-tag">${link.category}</span>` : '';
                 const loginHtml = `
-                    <button class="btn-toggle-info" onclick="fetchAndShowInfo('${link.id}')">👁️ Show Info / Login</button>
+                    <button class="btn-toggle-info" onclick="fetchAndShowInfo('${link.id}')">Show Info / Login</button>
                     <div id="info-${link.id}" class="hidden-info"></div>
                 `;
 
@@ -211,16 +198,16 @@
                             <a href="${link.url}" target="_blank" class="sys-title" title="${link.url}" onclick="event.stopPropagation()">${link.name}</a>
                             ${categoryHtml}
                         </div>
-                        <div class="meta-data">👤 ${link.created_by} | 📅 ${date}</div>
+                        <div class="meta-data">${link.created_by} | ${date}</div>
                         ${loginHtml}
                     </div>
 
                     <div class="card-actions" onclick="event.stopPropagation()">
                         <button class="btn-pin" style="background: ${link.priority > 0 ? '#6c757d' : '#ffc107'};" onclick="toggleImportant('${link.id}', ${link.priority})">
-                            ${link.priority > 0 ? 'Unpin' : '⭐ Pin'}
+                            ${link.priority > 0 ? 'Unpin' : 'Pin'}
                         </button>
-                        <button class="btn-edit" onclick="openEditForm('${link.id}')">✏️ Edit</button>
-                        <button class="btn-delete" onclick="deleteLink('${link.id}')">🗑️ Delete</button>
+                        <button class="btn-edit" onclick="openEditForm('${link.id}')">Edit</button>
+                        <button class="btn-delete" onclick="deleteLink('${link.id}')">Delete</button>
                     </div>
                 `;
                 container.appendChild(div);
@@ -285,7 +272,7 @@
         }
 
         function filterLinks() {
-            const keyword = document.getElementById('searchBox'].value.toLowerCase();
+            const keyword = document.getElementById('searchBox').value.toLowerCase();
             const filtered = allLinks.filter(link => 
                 link.name.toLowerCase().includes(keyword) || 
                 (link.category && link.category.toLowerCase().includes(keyword))
@@ -316,7 +303,7 @@
                 .single();
 
             if (error || !data) {
-                infoDiv.innerHTML = '无账号密码记录或获取失败。';
+                infoDiv.innerHTML = 'No login info found or fetch failed.';
             } else {
                 infoDiv.innerHTML = data.login_info;
             }
