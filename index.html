@@ -146,7 +146,6 @@
         }
 
         async function fetchLinks() {
-            // Prioritize pinned items (priority > 0) to always show at the very top
             const { data, error } = await supabaseClient
                 .from('company_links')
                 .select('id, name, url, category, created_by, created_at, priority, sort_order') 
@@ -273,7 +272,7 @@
         }
 
         function filterLinks() {
-            const keyword = document.getElementById('searchBox'].value.toLowerCase();
+            const keyword = document.getElementById('searchBox').value.toLowerCase();
             const filtered = allLinks.filter(link => 
                 link.name.toLowerCase().includes(keyword) || 
                 (link.category && link.category.toLowerCase().includes(keyword))
