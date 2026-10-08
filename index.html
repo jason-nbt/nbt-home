@@ -19,7 +19,7 @@
         .btn-success { background: #28a745; color: white; width: 100%; margin-top: 10px; font-size: 16px; }
         .btn-delete { background: #dc3545; color: white; font-size: 12px; padding: 6px 12px; }
         .btn-pin { font-size: 12px; padding: 6px 12px; color: white; }
-        .btn-edit { background: #ffc107; color: #212529; font-size: 12px; padding: 6px 12px; } /* 新增编辑按钮样式 */
+        .btn-edit { background: #ffc107; color: #212529; font-size: 12px; padding: 6px 12px; }
         .btn-toggle-info { background: #e2e8f0; color: #475569; font-size: 12px; padding: 5px 10px; margin-top: 10px; border-radius: 4px; display: inline-flex; align-items: center; gap: 5px;}
         .btn-toggle-info:hover { background: #cbd5e1; }
 
@@ -35,10 +35,23 @@
             background: white; padding: 20px; border-radius: 10px; 
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             display: flex; flex-direction: column; justify-content: space-between;
-            transition: transform 0.2s;
+            transition: transform 0.15s, box-shadow 0.15s;
+            cursor: grab; /* 提示可拖拽 */
+            user-select: none;
         }
+        .card:active { cursor: grabbing; }
         .card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
         .card.important { border: 2px solid #007bff; background-color: #f8fbff; }
+        
+        /* 拖拽时的样式变化 */
+        .card.dragging {
+            opacity: 0.4;
+            border: 2px dashed #007bff;
+        }
+        .card.drag-over {
+            border-top: 4px solid #007bff;
+            background-color: #eef5ff;
+        }
         
         /* 卡片内部元素排版 */
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
@@ -61,11 +74,14 @@
         .close-btn { position: absolute; right: 20px; top: 20px; font-size: 24px; color: #6c757d; cursor: pointer; line-height: 1; }
         .close-btn:hover { color: #dc3545; }
         .form-label { font-size: 13px; font-weight: bold; color: #495057; }
+        
+        .drag-hint { font-size: 13px; color: #6c757d; margin-bottom: 15px; font-style: italic; }
     </style>
 </head>
 <body>
 
-    <h2 style="color: #343a40; margin-bottom: 25px;">🔗 NBT Company System / Link Directory</h2>
+    <h2 style="color: #343a40; margin-bottom: 10px;">🔗 NBT Company System / Link Directory</h2>
+    <div class="drag-hint">💡 提示：按住任意卡片可以直接用鼠标**拖拽调整顺序**，松手即自动保存！</div>
 
     <!-- 顶部操作栏 -->
     <div class="top-bar">
@@ -93,9 +109,6 @@
             <label class="form-label">Category (Optional)</label>
             <input type="text" id="linkCategory" placeholder="e.g., Logistics, Accounting, HR">
             
-            <label class="form-label">Order Priority (Higher number = shows first)</label>
-            <input type="number" id="linkPriority" placeholder="0" value="0">
-
             <label class="form-label">Login Info / Remarks (Hidden by default)</label>
             <input type="text" id="loginInfo" placeholder="e.g., [shiuank:123456]">
             
@@ -106,7 +119,7 @@
         </div>
     </div>
 
-    <!-- 悬浮窗 (Edit Link Modal) 新增编辑弹窗 -->
+    <!-- 悬浮窗 (Edit Link Modal) -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('editModal')">&times;</span>
@@ -122,9 +135,6 @@
             
             <label class="form-label">Category (Optional)</label>
             <input type="text" id="editLinkCategory">
-
-            <label class="form-label">Order Priority (Higher number = shows first)</label>
-            <input type="number" id="editLinkPriority">
             
             <label class="form-label">Update Login Info (Leave blank if no change)</label>
             <input type="text" id="editLoginInfo" placeholder="Enter new details to overwrite">
@@ -139,8 +149,8 @@
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let allLinks = [];
+        let draggedCardId = null;
 
-        // 统一控制悬浮窗
         function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
         function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
         window.onclick = function(event) {
@@ -151,8 +161,9 @@
        async function fetchLinks() {
             const { data, error } = await supabaseClient
                 .from('company_links')
-                .select('id, name, url, category, created_by, created_at, priority') 
-                .order('priority', { ascending: false }) // 按权重降序排列
+                .select('id, name, url, category, created_by, created_at, priority, sort_order') 
+                .order('sort_order', { ascending: true, nullsFirst: false }) // 按自定义拖拽顺序排序
+                .order('priority', { ascending: false })
                 .order('name', { ascending: true });
 
             if (error) {
@@ -173,12 +184,21 @@
                 return;
             }
 
-            links.forEach(link => {
+            links.forEach((link, index) => {
                 const date = new Date(link.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 const div = document.createElement('div');
                 
                 const isImportant = link.priority > 0;
                 div.className = isImportant ? 'card important' : 'card';
+                div.setAttribute('draggable', 'true');
+                div.dataset.id = link.id;
+
+                // 绑定拖拽事件
+                div.addEventListener('dragstart', handleDragStart);
+                div.addEventListener('dragover', handleDragOver);
+                div.addEventListener('dragleave', handleDragLeave);
+                div.addEventListener('drop', handleDrop);
+                div.addEventListener('dragend', handleDragEnd);
 
                 const categoryHtml = link.category ? `<span class="category-tag">${link.category}</span>` : '';
                 const loginHtml = `
@@ -189,14 +209,14 @@
                 div.innerHTML = `
                     <div>
                         <div class="card-header">
-                            <a href="${link.url}" target="_blank" class="sys-title" title="${link.url}">${link.name}</a>
+                            <a href="${link.url}" target="_blank" class="sys-title" title="${link.url}" onclick="event.stopPropagation()">${link.name}</a>
                             ${categoryHtml}
                         </div>
-                        <div class="meta-data">👤 ${link.created_by} | 📅 ${date} | 优先级: ${link.priority}</div>
+                        <div class="meta-data">👤 ${link.created_by} | 📅 ${date}</div>
                         ${loginHtml}
                     </div>
 
-                    <div class="card-actions">
+                    <div class="card-actions" onclick="event.stopPropagation()">
                         <button class="btn-pin" style="background: ${link.priority > 0 ? '#6c757d' : '#ffc107'};" onclick="toggleImportant('${link.id}', ${link.priority})">
                             ${link.priority > 0 ? 'Unpin' : '⭐ Pin'}
                         </button>
@@ -208,8 +228,71 @@
             });
         }
 
+        // --- 拖拽交互函数 ---
+        function handleDragStart(e) {
+            draggedCardId = this.dataset.id;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            const card = e.target.closest('.card');
+            if (card && card.dataset.id !== draggedCardId) {
+                card.classList.add('drag-over');
+            }
+        }
+
+        function handleDragLeave(e) {
+            const card = e.target.closest('.card');
+            if (card) card.classList.remove('drag-over');
+        }
+
+        async function handleDrop(e) {
+            e.preventDefault();
+            const targetCard = e.target.closest('.card');
+            if (!targetCard) return;
+            targetCard.classList.remove('drag-over');
+
+            const targetCardId = targetCard.dataset.id;
+            if (draggedCardId === targetCardId) return;
+
+            // 在前端数组中重新排序
+            const draggedIndex = allLinks.findIndex(l => l.id === draggedCardId);
+            const targetIndex = allLinks.findIndex(l => l.id === targetCardId);
+            
+            if (draggedIndex < 0 || targetIndex < 0) return;
+
+            const [movedItem] = allLinks.splice(draggedIndex, 1);
+            allLinks.splice(targetIndex, 0, movedItem);
+
+            // 重新渲染页面
+            renderLinks(allLinks);
+
+            // 批量将最新的顺序保存到 Supabase 数据库
+            await saveNewOrderToDatabase();
+        }
+
+        function handleDragEnd() {
+            document.querySelectorAll('.card').forEach(card => {
+                card.classList.remove('dragging', 'drag-over');
+            });
+        }
+
+        async function saveNewOrderToDatabase() {
+            // 遍历当前排列好后的顺序，赋予新的 sort_order 值（从 1 开始递增）
+            for (let i = 0; i < allLinks.length; i++) {
+                const linkId = allLinks[i].id;
+                await supabaseClient
+                    .from('company_links')
+                    .update({ sort_order: i + 1 })
+                    .eq('id', linkId);
+            }
+        }
+
         function filterLinks() {
-            const keyword = document.getElementById('searchBox').value.toLowerCase();
+            const keyword = document.getElementById('searchBox'].value.toLowerCase();
             const filtered = allLinks.filter(link => 
                 link.name.toLowerCase().includes(keyword) || 
                 (link.category && link.category.toLowerCase().includes(keyword))
@@ -219,7 +302,6 @@
 
        async function fetchAndShowInfo(linkId) {
             const infoDiv = document.getElementById(`info-${linkId}`);
-
             if (infoDiv.style.display === 'block') {
                 infoDiv.style.display = 'none';
                 return;
@@ -253,16 +335,26 @@
             const category = document.getElementById('linkCategory').value.trim();
             const loginInfo = document.getElementById('loginInfo').value.trim();
             const user = document.getElementById('userName').value.trim();
-            const priority = parseInt(document.getElementById('linkPriority').value) || 0;
+            
+            // 新加的排在最前面
+            const newSortOrder = 1;
 
             if (!name || !url || !user) {
                 alert("Please fill in System Name, URL and Your Name!");
                 return;
             }
 
+            // 把现有的记录 sort_order 全部往后顺延 1 位
+            for (let link of allLinks) {
+                await supabaseClient
+                    .from('company_links')
+                    .update({ sort_order: (link.sort_order || 0) + 1 })
+                    .eq('id', link.id);
+            }
+
             const { data: linkData, error: linkError } = await supabaseClient
                 .from('company_links')
-                .insert([{ name: name, url: url, created_by: user, priority: priority, category: category }])
+                .insert([{ name: name, url: url, created_by: user, priority: 0, category: category, sort_order: newSortOrder }])
                 .select(); 
 
             if (linkError) {
@@ -280,12 +372,10 @@
             document.getElementById('linkCategory').value = '';
             document.getElementById('loginInfo').value = '';
             document.getElementById('userName').value = '';
-            document.getElementById('linkPriority').value = '0';
             closeModal('addModal');
             fetchLinks(); 
         }
 
-        // 打开编辑表单并填充现有数据
         function openEditForm(id) {
             const link = allLinks.find(l => l.id === id);
             if (!link) return;
@@ -294,19 +384,16 @@
             document.getElementById('editLinkName').value = link.name;
             document.getElementById('editLinkUrl').value = link.url;
             document.getElementById('editLinkCategory').value = link.category || '';
-            document.getElementById('editLinkPriority').value = link.priority || 0;
-            document.getElementById('editLoginInfo').value = ''; // 默认为空，避免暴露密码
+            document.getElementById('editLoginInfo').value = '';
 
             openModal('editModal');
         }
 
-        // 保存编辑后的链接
         async function saveEditedLink() {
             const id = document.getElementById('editLinkId').value;
             const name = document.getElementById('editLinkName').value.trim();
             const url = document.getElementById('editLinkUrl').value.trim();
             const category = document.getElementById('editLinkCategory').value.trim();
-            const priority = parseInt(document.getElementById('editLinkPriority').value) || 0;
             const newLoginInfo = document.getElementById('editLoginInfo').value.trim();
 
             if (!name || !url) {
@@ -314,10 +401,9 @@
                 return;
             }
 
-            // 更新主表数据
             const { error: linkError } = await supabaseClient
                 .from('company_links')
-                .update({ name: name, url: url, category: category, priority: priority })
+                .update({ name: name, url: url, category: category })
                 .eq('id', id);
 
             if (linkError) {
@@ -325,9 +411,7 @@
                 return;
             }
 
-            // 如果老板填写了新的密码/备注，就去更新密码表
             if (newLoginInfo !== '') {
-                // 先检查数据库有没有记录
                 const { data: existingSecret } = await supabaseClient
                     .from('link_secrets')
                     .select('id')
