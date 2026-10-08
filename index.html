@@ -19,6 +19,7 @@
         .btn-success { background: #28a745; color: white; width: 100%; margin-top: 10px; font-size: 16px; }
         .btn-delete { background: #dc3545; color: white; font-size: 12px; padding: 6px 12px; }
         .btn-pin { font-size: 12px; padding: 6px 12px; color: white; }
+        .btn-edit { background: #ffc107; color: #212529; font-size: 12px; padding: 6px 12px; } /* 新增编辑按钮样式 */
         .btn-toggle-info { background: #e2e8f0; color: #475569; font-size: 12px; padding: 5px 10px; margin-top: 10px; border-radius: 4px; display: inline-flex; align-items: center; gap: 5px;}
         .btn-toggle-info:hover { background: #cbd5e1; }
 
@@ -55,7 +56,7 @@
 
         /* 悬浮窗 (Modal) 样式 */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(3px); align-items: center; justify-content: center; }
-        .modal-content { background-color: white; padding: 25px; border-radius: 10px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; }
+        .modal-content { background-color: white; padding: 25px; border-radius: 10px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; max-height: 90vh; overflow-y: auto; }
         .modal-content input { width: 100%; box-sizing: border-box; padding: 10px; margin: 8px 0 15px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; }
         .close-btn { position: absolute; right: 20px; top: 20px; font-size: 24px; color: #6c757d; cursor: pointer; line-height: 1; }
         .close-btn:hover { color: #dc3545; }
@@ -69,7 +70,7 @@
     <!-- 顶部操作栏 -->
     <div class="top-bar">
         <input type="text" id="searchBox" placeholder="🔍 Search system name or category..." oninput="filterLinks()">
-        <button class="btn-primary" onclick="openModal()">➕ Add New Link</button>
+        <button class="btn-primary" onclick="openModal('addModal')">➕ Add New Link</button>
     </div>
 
     <!-- 网格列表容器 -->
@@ -80,7 +81,7 @@
     <!-- 悬浮窗 (Add Link Modal) -->
     <div id="addModal" class="modal">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <span class="close-btn" onclick="closeModal('addModal')">&times;</span>
             <h3 style="margin-top: 0; margin-bottom: 20px; color: #007bff;">➕ Add New Link</h3>
             
             <label class="form-label">System Name *</label>
@@ -92,6 +93,9 @@
             <label class="form-label">Category (Optional)</label>
             <input type="text" id="linkCategory" placeholder="e.g., Logistics, Accounting, HR">
             
+            <label class="form-label">Order Priority (Higher number = shows first)</label>
+            <input type="number" id="linkPriority" placeholder="0" value="0">
+
             <label class="form-label">Login Info / Remarks (Hidden by default)</label>
             <input type="text" id="loginInfo" placeholder="e.g., [shiuank:123456]">
             
@@ -102,6 +106,33 @@
         </div>
     </div>
 
+    <!-- 悬浮窗 (Edit Link Modal) 新增编辑弹窗 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('editModal')">&times;</span>
+            <h3 style="margin-top: 0; margin-bottom: 20px; color: #ffc107;">✏️ Edit Link</h3>
+            
+            <input type="hidden" id="editLinkId">
+
+            <label class="form-label">System Name *</label>
+            <input type="text" id="editLinkName" required>
+            
+            <label class="form-label">URL / Website Link *</label>
+            <input type="url" id="editLinkUrl" required>
+            
+            <label class="form-label">Category (Optional)</label>
+            <input type="text" id="editLinkCategory">
+
+            <label class="form-label">Order Priority (Higher number = shows first)</label>
+            <input type="number" id="editLinkPriority">
+            
+            <label class="form-label">Update Login Info (Leave blank if no change)</label>
+            <input type="text" id="editLoginInfo" placeholder="Enter new details to overwrite">
+            
+            <button class="btn-success" onclick="saveEditedLink()">Update Link</button>
+        </div>
+    </div>
+
     <script>
         const SUPABASE_URL = 'https://yvtujoueyotncbvdlgyf.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_98O37WT0nSZVw2I9128JOg___CX38Dn';
@@ -109,18 +140,19 @@
 
         let allLinks = [];
 
-        // 悬浮窗控制逻辑
-        function openModal() { document.getElementById('addModal').style.display = 'flex'; }
-        function closeModal() { document.getElementById('addModal').style.display = 'none'; }
+        // 统一控制悬浮窗
+        function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
+        function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
         window.onclick = function(event) {
-            if (event.target == document.getElementById('addModal')) closeModal();
+            if (event.target == document.getElementById('addModal')) closeModal('addModal');
+            if (event.target == document.getElementById('editModal')) closeModal('editModal');
         }
 
        async function fetchLinks() {
             const { data, error } = await supabaseClient
                 .from('company_links')
                 .select('id, name, url, category, created_by, created_at, priority') 
-                .order('priority', { ascending: false })
+                .order('priority', { ascending: false }) // 按权重降序排列
                 .order('name', { ascending: true });
 
             if (error) {
@@ -148,7 +180,6 @@
                 const isImportant = link.priority > 0;
                 div.className = isImportant ? 'card important' : 'card';
 
-                // 判断是否有分类和隐藏信息
                 const categoryHtml = link.category ? `<span class="category-tag">${link.category}</span>` : '';
                 const loginHtml = `
                     <button class="btn-toggle-info" onclick="fetchAndShowInfo('${link.id}')">👁️ Show Info / Login</button>
@@ -157,22 +188,20 @@
 
                 div.innerHTML = `
                     <div>
-                        <!-- 卡片头部：将标题转为点击跳转的链接，并隐藏长网址 -->
                         <div class="card-header">
                             <a href="${link.url}" target="_blank" class="sys-title" title="${link.url}">${link.name}</a>
                             ${categoryHtml}
                         </div>
-                        
-                        <div class="meta-data">👤 ${link.created_by} | 📅 ${date}</div>
+                        <div class="meta-data">👤 ${link.created_by} | 📅 ${date} | 优先级: ${link.priority}</div>
                         ${loginHtml}
                     </div>
 
-                    <!-- 卡片底部：操作按钮 -->
                     <div class="card-actions">
                         <button class="btn-pin" style="background: ${link.priority > 0 ? '#6c757d' : '#ffc107'};" onclick="toggleImportant('${link.id}', ${link.priority})">
                             ${link.priority > 0 ? 'Unpin' : '⭐ Pin'}
                         </button>
-                        <button class="btn-delete" onclick="deleteLink('${link.id}')">Delete</button>
+                        <button class="btn-edit" onclick="openEditForm('${link.id}')">✏️ Edit</button>
+                        <button class="btn-delete" onclick="deleteLink('${link.id}')">🗑️ Delete</button>
                     </div>
                 `;
                 container.appendChild(div);
@@ -205,7 +234,6 @@
             infoDiv.style.display = 'block';
             infoDiv.innerHTML = '<span style="color:#6c757d;">Fetching data...</span>';
 
-            // 向 Supabase 的密码表发起独立请求
             const { data, error } = await supabaseClient
                 .from('link_secrets')
                 .select('login_info')
@@ -215,7 +243,6 @@
             if (error || !data) {
                 infoDiv.innerHTML = '无账号密码记录或获取失败。';
             } else {
-                // 将从数据库单独拉取到的密码显示出来
                 infoDiv.innerHTML = data.login_info;
             }
         }
@@ -226,55 +253,96 @@
             const category = document.getElementById('linkCategory').value.trim();
             const loginInfo = document.getElementById('loginInfo').value.trim();
             const user = document.getElementById('userName').value.trim();
-            const priority = 0;
+            const priority = parseInt(document.getElementById('linkPriority').value) || 0;
 
             if (!name || !url || !user) {
                 alert("Please fill in System Name, URL and Your Name!");
                 return;
             }
 
-            // 1. 先把公开信息存入主表，并要求返回插入的数据 (.select())
             const { data: linkData, error: linkError } = await supabaseClient
                 .from('company_links')
-                .insert([{ 
-                    name: name, 
-                    url: url, 
-                    created_by: user, 
-                    priority: priority,
-                    category: category
-                    // 注意：这里去掉了 login_info
-                }])
-                .select(); // 必须加上 select 才能在下面拿到刚刚生成的 id
+                .insert([{ name: name, url: url, created_by: user, priority: priority, category: category }])
+                .select(); 
 
             if (linkError) {
                 alert("Failed to add link: " + linkError.message);
                 return;
             }
 
-            // 2. 如果填写了密码，再把密码单独存入 link_secrets 表
             if (loginInfo && linkData && linkData.length > 0) {
                 const newLinkId = linkData[0].id;
-                
-                const { error: secretError } = await supabaseClient
-                    .from('link_secrets')
-                    .insert([{ 
-                        link_id: newLinkId, 
-                        login_info: loginInfo 
-                    }]);
-                    
-                if (secretError) {
-                    alert("Link added, but failed to save login info: " + secretError.message);
-                }
+                await supabaseClient.from('link_secrets').insert([{ link_id: newLinkId, login_info: loginInfo }]);
             }
 
-            // 清空表格并关闭悬浮窗
             document.getElementById('linkName').value = '';
             document.getElementById('linkUrl').value = '';
             document.getElementById('linkCategory').value = '';
             document.getElementById('loginInfo').value = '';
             document.getElementById('userName').value = '';
-            closeModal();
+            document.getElementById('linkPriority').value = '0';
+            closeModal('addModal');
             fetchLinks(); 
+        }
+
+        // 打开编辑表单并填充现有数据
+        function openEditForm(id) {
+            const link = allLinks.find(l => l.id === id);
+            if (!link) return;
+
+            document.getElementById('editLinkId').value = link.id;
+            document.getElementById('editLinkName').value = link.name;
+            document.getElementById('editLinkUrl').value = link.url;
+            document.getElementById('editLinkCategory').value = link.category || '';
+            document.getElementById('editLinkPriority').value = link.priority || 0;
+            document.getElementById('editLoginInfo').value = ''; // 默认为空，避免暴露密码
+
+            openModal('editModal');
+        }
+
+        // 保存编辑后的链接
+        async function saveEditedLink() {
+            const id = document.getElementById('editLinkId').value;
+            const name = document.getElementById('editLinkName').value.trim();
+            const url = document.getElementById('editLinkUrl').value.trim();
+            const category = document.getElementById('editLinkCategory').value.trim();
+            const priority = parseInt(document.getElementById('editLinkPriority').value) || 0;
+            const newLoginInfo = document.getElementById('editLoginInfo').value.trim();
+
+            if (!name || !url) {
+                alert("Name and URL cannot be empty!");
+                return;
+            }
+
+            // 更新主表数据
+            const { error: linkError } = await supabaseClient
+                .from('company_links')
+                .update({ name: name, url: url, category: category, priority: priority })
+                .eq('id', id);
+
+            if (linkError) {
+                alert("Failed to update link: " + linkError.message);
+                return;
+            }
+
+            // 如果老板填写了新的密码/备注，就去更新密码表
+            if (newLoginInfo !== '') {
+                // 先检查数据库有没有记录
+                const { data: existingSecret } = await supabaseClient
+                    .from('link_secrets')
+                    .select('id')
+                    .eq('link_id', id)
+                    .single();
+
+                if (existingSecret) {
+                    await supabaseClient.from('link_secrets').update({ login_info: newLoginInfo }).eq('link_id', id);
+                } else {
+                    await supabaseClient.from('link_secrets').insert([{ link_id: id, login_info: newLoginInfo }]);
+                }
+            }
+
+            closeModal('editModal');
+            fetchLinks();
         }
 
         async function toggleImportant(id, currentPriority) {
@@ -285,6 +353,11 @@
         }
 
         async function deleteLink(id) {
+            const pass = prompt("Delete requires admin password:");
+            if (pass !== "ilovenbt") { 
+                alert("Action Cancelled / Password Incorrect.");
+                return;
+            }
             if (!confirm("Are you sure you want to delete this link?")) return;
             const { error } = await supabaseClient.from('company_links').delete().eq('id', id);
             if (error) alert("Failed to delete: " + error.message);
