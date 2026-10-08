@@ -158,11 +158,11 @@
             if (event.target == document.getElementById('editModal')) closeModal('editModal');
         }
 
-       async function fetchLinks() {
+        async function fetchLinks() {
             const { data, error } = await supabaseClient
                 .from('company_links')
                 .select('id, name, url, category, created_by, created_at, priority, sort_order') 
-                .order('sort_order', { ascending: true, nullsFirst: false }) // 按自定义拖拽顺序排序
+                .order('sort_order', { ascending: true, nullsFirst: false })
                 .order('priority', { ascending: false })
                 .order('name', { ascending: true });
 
@@ -193,7 +193,6 @@
                 div.setAttribute('draggable', 'true');
                 div.dataset.id = link.id;
 
-                // 绑定拖拽事件
                 div.addEventListener('dragstart', handleDragStart);
                 div.addEventListener('dragover', handleDragOver);
                 div.addEventListener('dragleave', handleDragLeave);
@@ -228,7 +227,6 @@
             });
         }
 
-        // --- 拖拽交互函数 ---
         function handleDragStart(e) {
             draggedCardId = this.dataset.id;
             this.classList.add('dragging');
@@ -258,7 +256,6 @@
             const targetCardId = targetCard.dataset.id;
             if (draggedCardId === targetCardId) return;
 
-            // 在前端数组中重新排序
             const draggedIndex = allLinks.findIndex(l => l.id === draggedCardId);
             const targetIndex = allLinks.findIndex(l => l.id === targetCardId);
             
@@ -267,10 +264,7 @@
             const [movedItem] = allLinks.splice(draggedIndex, 1);
             allLinks.splice(targetIndex, 0, movedItem);
 
-            // 重新渲染页面
             renderLinks(allLinks);
-
-            // 批量将最新的顺序保存到 Supabase 数据库
             await saveNewOrderToDatabase();
         }
 
@@ -281,7 +275,6 @@
         }
 
         async function saveNewOrderToDatabase() {
-            // 遍历当前排列好后的顺序，赋予新的 sort_order 值（从 1 开始递增）
             for (let i = 0; i < allLinks.length; i++) {
                 const linkId = allLinks[i].id;
                 await supabaseClient
@@ -300,7 +293,7 @@
             renderLinks(filtered);
         }
 
-       async function fetchAndShowInfo(linkId) {
+        async function fetchAndShowInfo(linkId) {
             const infoDiv = document.getElementById(`info-${linkId}`);
             if (infoDiv.style.display === 'block') {
                 infoDiv.style.display = 'none';
@@ -336,7 +329,6 @@
             const loginInfo = document.getElementById('loginInfo').value.trim();
             const user = document.getElementById('userName').value.trim();
             
-            // 新加的排在最前面
             const newSortOrder = 1;
 
             if (!name || !url || !user) {
@@ -344,7 +336,6 @@
                 return;
             }
 
-            // 把现有的记录 sort_order 全部往后顺延 1 位
             for (let link of allLinks) {
                 await supabaseClient
                     .from('company_links')
@@ -376,7 +367,7 @@
             fetchLinks(); 
         }
 
-        function openEditForm(id) {
+        async function openEditForm(id) {
             const link = allLinks.find(l => l.id === id);
             if (!link) return;
 
