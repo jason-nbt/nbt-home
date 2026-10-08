@@ -72,7 +72,7 @@
 <body>
 
     <h2 style="color: #343a40; margin-bottom: 10px;">🔗 NBT Company System / Link Directory</h2>
-    <div class="drag-hint">Tip: Pinned cards stay at the top. Drag and drop any card to reorder!</div>
+    <div class="drag-hint">Tip: Pinned cards stay at the top instantly. Drag and drop any card to reorder!</div>
 
     <div class="top-bar">
         <input type="text" id="searchBox" placeholder="🔍 Search system name or category..." oninput="filterLinks()">
@@ -407,11 +407,27 @@
             fetchLinks();
         }
 
+        // 修改后的 Pin / Unpin 函数：实现点击瞬间立刻秒飞置顶
         async function toggleImportant(id, currentPriority) {
             const newPriority = currentPriority > 0 ? 0 : 10;
+            
+            // 1. 立即在本地更新该卡片的 priority 并重新排序渲染，实现“秒飞到最上面”
+            const item = allLinks.find(l => l.id === id);
+            if (item) {
+                item.priority = newPriority;
+                allLinks.sort((a, b) => {
+                    if (b.priority !== a.priority) return b.priority - a.priority;
+                    return (a.sort_order || 0) - (b.sort_order || 0);
+                });
+                renderLinks(allLinks);
+            }
+
+            // 2. 在后台异步同步到数据库
             const { error } = await supabaseClient.from('company_links').update({ priority: newPriority }).eq('id', id);
-            if (error) alert("Failed to update: " + error.message);
-            else fetchLinks(); 
+            if (error) {
+                alert("Failed to update: " + error.message);
+                fetchLinks(); // 如果出错则从数据库重新拉取
+            }
         }
 
         async function deleteLink(id) {
