@@ -317,7 +317,11 @@
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let allLinks = [];
-        let customGroups = ['Calculators', 'Dashboards', 'Core Systems']; 
+        
+        // 从本地缓存读取自定义分组与分组映射，无需改动数据库表结构
+        let customGroups = JSON.parse(localStorage.getItem('nbt_custom_groups')) || ['Calculators', 'Dashboards', 'Core Systems'];
+        let linkGroupMap = JSON.parse(localStorage.getItem('nbt_link_group_map')) || {};
+
         let draggedCardId = null;
 
         function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
@@ -332,7 +336,7 @@
         async function fetchLinks() {
             const { data, error } = await supabaseClient
                 .from('company_links')
-                .select('id, name, url, category, group_name, created_by, created_at, priority, sort_order') 
+                .select('id, name, url, category, created_by, created_at, priority, sort_order') 
                 .order('priority', { ascending: false })
                 .order('sort_order', { ascending: true, nullsFirst: false })
                 .order('name', { ascending: true });
@@ -358,7 +362,8 @@
             groupMap['Unassigned'] = [];
 
             links.forEach(link => {
-                const groupName = (link.group_name && groupMap[link.group_name]) ? link.group_name : 'Unassigned';
+                const assignedGroup = linkGroupMap[link.id];
+                const groupName = (assignedGroup && groupMap[assignedGroup]) ? assignedGroup : 'Unassigned';
                 groupMap[groupName].push(link);
             });
 
@@ -368,7 +373,6 @@
                 const safeId = "group-" + groupName.replace(/\s+/g, '-').toLowerCase();
                 const itemsCount = groupMap[groupName].length;
 
-                // 左侧菜单项增加删除按钮（Unassigned 不能删）
                 let deleteGroupBtn = '';
                 if (groupName !== 'Unassigned') {
                     deleteGroupBtn = `<button class="btn-delete-group" onclick="deleteGroup(event, '${groupName}')" title="Delete Group">🗑️</button>`;
@@ -384,7 +388,6 @@
                     </div>
                 `;
 
-                // 右侧表格区域
                 const section = document.createElement('div');
                 section.className = 'category-section';
                 section.id = safeId;
@@ -466,34 +469,31 @@
             }
             if (!customGroups.includes(groupName)) {
                 customGroups.push(groupName);
+                localStorage.setItem('nbt_custom_groups', JSON.stringify(customGroups));
             }
             document.getElementById('newGroupName').value = '';
             closeModal('groupModal');
             renderLinks(allLinks);
         }
 
-        // 删除分组函数：删除时将该组内的所有链接归回 Unassigned
-        async function deleteGroup(event, groupName) {
+        // 删除分组
+        function deleteGroup(event, groupName) {
             event.stopPropagation();
             if (!confirm(`Are you sure you want to delete group "${groupName}"? Links inside this group will be moved back to Unassigned.`)) {
                 return;
             }
 
-            // 1. 从自定义分组列表里移除
             customGroups = customGroups.filter(g => g !== groupName);
+            localStorage.setItem('nbt_custom_groups', JSON.stringify(customGroups));
 
-            // 2. 将该组下的所有链接的 group_name 更新为 null (即 Unassigned)
-            for (let link of allLinks) {
-                if (link.group_name === groupName) {
-                    link.group_name = null;
-                    await supabaseClient
-                        .from('company_links')
-                        .update({ group_name: null })
-                        .eq('id', link.id);
+            // 清除该组内所有链接的映射关系
+            for (let id in linkGroupMap) {
+                if (linkGroupMap[id] === groupName) {
+                    delete linkGroupMap[id];
                 }
             }
+            localStorage.setItem('nbt_link_group_map', JSON.stringify(linkGroupMap));
 
-            // 3. 重新渲染页面
             renderLinks(allLinks);
         }
 
@@ -527,27 +527,29 @@
             if (targetRow) targetRow.classList.remove('drag-over');
 
             const targetGroup = targetSection.dataset.groupName;
-            const draggedItem = allLinks.find(l => l.id === draggedCardId);
-            if (!draggedItem) return;
+            const draggedIndex = allLinks.findIndex(l => l.id === draggedCardId);
+            if (draggedIndex < 0) return;
 
-            const oldGroup = (draggedItem.group_name && customGroups.includes(draggedItem.group_name)) ? draggedItem.group_name : 'Unassigned';
-            const isGroupChanged = (oldGroup !== targetGroup);
+            const draggedItem = allLinks[draggedIndex];
 
-            if (isGroupChanged) {
-                draggedItem.group_name = (targetGroup === 'Unassigned') ? null : targetGroup;
+            // 更新该卡片的分组映射并存入本地缓存
+            if (targetGroup === 'Unassigned') {
+                delete linkGroupMap[draggedCardId];
+            } else {
+                linkGroupMap[draggedCardId] = targetGroup;
             }
+            localStorage.setItem('nbt_link_group_map', JSON.stringify(linkGroupMap));
 
             if (targetRow && targetRow.dataset.id !== draggedCardId) {
-                const draggedIndex = allLinks.findIndex(l => l.id === draggedCardId);
                 const targetIndex = allLinks.findIndex(l => l.id === targetRow.dataset.id);
-                if (draggedIndex >= 0 && targetIndex >= 0) {
+                if (targetIndex >= 0) {
                     const [movedItem] = allLinks.splice(draggedIndex, 1);
                     allLinks.splice(targetIndex, 0, movedItem);
                 }
             }
 
             renderLinks(allLinks);
-            await saveNewOrderAndGroupToDatabase(draggedCardId, draggedItem.group_name);
+            await saveNewOrderToDatabase();
         }
 
         function handleDragEnd() {
@@ -556,17 +558,13 @@
             });
         }
 
-        async function saveNewOrderAndGroupToDatabase(movedId, newGroup) {
+        async function saveNewOrderToDatabase() {
             for (let i = 0; i < allLinks.length; i++) {
-                const link = allLinks[i];
-                const updateData = { sort_order: i + 1 };
-                if (link.id === movedId) {
-                    updateData.group_name = newGroup;
-                }
+                const linkId = allLinks[i].id;
                 await supabaseClient
                     .from('company_links')
-                    .update(updateData)
-                    .eq('id', link.id);
+                    .update({ sort_order: i + 1 })
+                    .eq('id', linkId);
             }
         }
 
@@ -631,7 +629,7 @@
 
             const { data: linkData, error: linkError } = await supabaseClient
                 .from('company_links')
-                .insert([{ name: name, url: url, created_by: user, priority: 0, category: category, group_name: null, sort_order: newSortOrder }])
+                .insert([{ name: name, url: url, created_by: user, priority: 0, category: category, sort_order: newSortOrder }])
                 .select(); 
 
             if (linkError) {
