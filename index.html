@@ -216,7 +216,7 @@
 </head>
 <body>
 
-    <!-- 左侧固定菜单栏 -->
+    <!-- 左侧固定菜单栏 (深蓝色 Group 表格，保持固定不动) -->
     <div class="sidebar">
         <div class="sidebar-top">
             <h2>🔗 Link Directory</h2>
@@ -234,10 +234,10 @@
         </div>
     </div>
 
-    <!-- 右侧主要内容 -->
+    <!-- 右侧主要内容 (支持拖拽时用鼠标滚轮滚动) -->
     <div class="main-content" id="mainContentArea">
         <h2 style="color: #0f172a; margin-top: 0; margin-bottom: 5px;">Company Links Directory</h2>
-        <div class="drag-hint">Tip: Drag any row near the top/bottom edge of the screen while dragging to auto-scroll!</div>
+        <div class="drag-hint">Tip: You can use your mouse wheel to scroll while dragging rows, or drag near the top/bottom edge to auto-scroll!</div>
         <br>
 
         <div class="top-bar">
@@ -429,6 +429,7 @@
                         tr.dataset.id = link.id;
 
                         tr.addEventListener('dragstart', handleDragStart);
+                        tr.addEventListener('dragend', handleDragEnd);
 
                         tr.innerHTML = `
                             <td>
@@ -495,7 +496,7 @@
             renderLinks(allLinks);
         }
 
-        // 拖拽相关事件处理（含边缘自动滚动 Auto-scroll）
+        // 拖拽相关事件处理（含边缘自动滚动 Auto-scroll & 鼠标滚轮滚动支持）
         function handleDragStart(e) {
             draggedCardId = this.dataset.id;
             this.classList.add('dragging');
@@ -503,6 +504,14 @@
         }
 
         const mainContentArea = document.getElementById('mainContentArea');
+
+        // 允许在拖拽时使用鼠标滚轮滚动主内容区
+        mainContentArea.addEventListener('wheel', (e) => {
+            if (draggedCardId) {
+                mainContentArea.scrollTop += e.deltaY;
+            }
+        }, { passive: true });
+
         mainContentArea.addEventListener('dragover', (e) => {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
@@ -571,6 +580,7 @@
         }
 
         function handleDragEnd() {
+            draggedCardId = null;
             document.querySelectorAll('.drag-row').forEach(row => {
                 row.classList.remove('dragging');
             });
