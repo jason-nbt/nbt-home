@@ -19,7 +19,7 @@
 
         /* 左侧固定的侧边栏 (深蓝色) */
         .sidebar {
-            width: 260px;
+            width: 270px;
             background: #0f172a; 
             color: #f8fafc;
             height: 100vh;
@@ -34,10 +34,22 @@
             box-shadow: 2px 0 10px rgba(0,0,0,0.1);
             z-index: 10;
         }
-        .sidebar-top { overflow-y: auto; flex-grow: 1; }
+        .sidebar-top { overflow-y: auto; flex-grow: 1; padding-right: 2px; }
         .sidebar h2 { font-size: 17px; margin-top: 0; margin-bottom: 25px; color: #ffffff; display: flex; align-items: center; gap: 8px; }
         .categories-title { font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 1px; margin-bottom: 12px; font-weight: bold; }
         
+        /* 侧边栏分组行样式 */
+        .sidebar-group-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .sidebar-group-item:hover {
+            background: #1e293b;
+        }
         .sidebar-link {
             display: flex;
             justify-content: space-between;
@@ -45,13 +57,11 @@
             color: #94a3b8;
             text-decoration: none;
             padding: 10px 12px;
-            border-radius: 6px;
-            margin-bottom: 6px;
             font-size: 14px;
-            transition: all 0.2s;
+            flex-grow: 1;
+            overflow: hidden;
         }
-        .sidebar-link:hover {
-            background: #1e293b;
+        .sidebar-group-item:hover .sidebar-link {
             color: #ffffff;
         }
         .sidebar-link .badge {
@@ -60,8 +70,25 @@
             font-size: 12px;
             padding: 2px 8px;
             border-radius: 10px;
+            margin-left: 8px;
         }
-        .sidebar-link:hover .badge { background: #334155; color: white; }
+        .sidebar-group-item:hover .badge { background: #334155; color: white; }
+        
+        /* 删除组按钮 */
+        .btn-delete-group {
+            background: transparent;
+            border: none;
+            color: #64748b;
+            cursor: pointer;
+            font-size: 13px;
+            padding: 8px 10px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .btn-delete-group:hover {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+        }
 
         /* 左侧底部的 Add Group 按钮样式 */
         .sidebar-bottom {
@@ -93,7 +120,7 @@
         /* 右侧主要内容区 */
         .main-content {
             flex-grow: 1;
-            margin-left: 260px; 
+            margin-left: 270px; 
             padding: 30px 40px;
             height: 100vh;
             overflow-y: auto;
@@ -235,7 +262,7 @@
         </div>
     </div>
 
-    <!-- 弹窗：添加链接 (不强制绑定Group，默认进 Unassigned) -->
+    <!-- 弹窗：添加链接 -->
     <div id="addModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('addModal')">&times;</span>
@@ -290,7 +317,7 @@
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let allLinks = [];
-        let customGroups = ['Calculators', 'Dashboards', 'Core Systems']; // 默认初始分组
+        let customGroups = ['Calculators', 'Dashboards', 'Core Systems']; 
         let draggedCardId = null;
 
         function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
@@ -305,7 +332,7 @@
         async function fetchLinks() {
             const { data, error } = await supabaseClient
                 .from('company_links')
-                .select('id, name, url, category, created_by, created_at, priority, sort_order') 
+                .select('id, name, url, category, group_name, created_by, created_at, priority, sort_order') 
                 .order('priority', { ascending: false })
                 .order('sort_order', { ascending: true, nullsFirst: false })
                 .order('name', { ascending: true });
@@ -326,38 +353,42 @@
             container.innerHTML = ''; 
             sidebar.innerHTML = '';
 
-            // 1. 初始化分组映射：包含所有预设/自定义的 Group，外加一个 'Unassigned'
             const groupMap = {};
             customGroups.forEach(g => { groupMap[g] = []; });
             groupMap['Unassigned'] = [];
 
-            // 2. 将数据放入对应的 Group 中（如果没有 group 或匹配不上，则归入 Unassigned）
             links.forEach(link => {
                 const groupName = (link.group_name && groupMap[link.group_name]) ? link.group_name : 'Unassigned';
                 groupMap[groupName].push(link);
             });
 
-            // 确保 Unassigned 排在最前面或按需排列，其余按字母排序
             const groupKeys = ['Unassigned', ...customGroups.filter(g => g !== 'Unassigned')];
 
-            // 3. 生成左侧导航和右侧表格
             groupKeys.forEach(groupName => {
                 const safeId = "group-" + groupName.replace(/\s+/g, '-').toLowerCase();
                 const itemsCount = groupMap[groupName].length;
 
-                // 左侧菜单项（带徽章计数）
+                // 左侧菜单项增加删除按钮（Unassigned 不能删）
+                let deleteGroupBtn = '';
+                if (groupName !== 'Unassigned') {
+                    deleteGroupBtn = `<button class="btn-delete-group" onclick="deleteGroup(event, '${groupName}')" title="Delete Group">🗑️</button>`;
+                }
+
                 sidebar.innerHTML += `
-                    <a href="#${safeId}" class="sidebar-link">
-                        <span>📁 ${groupName}</span>
-                        <span class="badge">${itemsCount}</span>
-                    </a>
+                    <div class="sidebar-group-item">
+                        <a href="#${safeId}" class="sidebar-link">
+                            <span>📁 ${groupName}</span>
+                            <span class="badge">${itemsCount}</span>
+                        </a>
+                        ${deleteGroupBtn}
+                    </div>
                 `;
 
                 // 右侧表格区域
                 const section = document.createElement('div');
                 section.className = 'category-section';
                 section.id = safeId;
-                section.dataset.groupName = groupName; // 记录当前表格所属的 Group 名称
+                section.dataset.groupName = groupName;
 
                 section.innerHTML = `
                     <div class="category-title-wrap">
@@ -426,7 +457,7 @@
             });
         }
 
-        // 新增分组函数 (Add Group)
+        // 新增分组
         function addGroup() {
             const groupName = document.getElementById('newGroupName').value.trim();
             if (!groupName) {
@@ -438,6 +469,31 @@
             }
             document.getElementById('newGroupName').value = '';
             closeModal('groupModal');
+            renderLinks(allLinks);
+        }
+
+        // 删除分组函数：删除时将该组内的所有链接归回 Unassigned
+        async function deleteGroup(event, groupName) {
+            event.stopPropagation();
+            if (!confirm(`Are you sure you want to delete group "${groupName}"? Links inside this group will be moved back to Unassigned.`)) {
+                return;
+            }
+
+            // 1. 从自定义分组列表里移除
+            customGroups = customGroups.filter(g => g !== groupName);
+
+            // 2. 将该组下的所有链接的 group_name 更新为 null (即 Unassigned)
+            for (let link of allLinks) {
+                if (link.group_name === groupName) {
+                    link.group_name = null;
+                    await supabaseClient
+                        .from('company_links')
+                        .update({ group_name: null })
+                        .eq('id', link.id);
+                }
+            }
+
+            // 3. 重新渲染页面
             renderLinks(allLinks);
         }
 
@@ -470,12 +526,10 @@
 
             if (targetRow) targetRow.classList.remove('drag-over');
 
-            // 1. 获取目标表格对应的 Group 名称
             const targetGroup = targetSection.dataset.groupName;
             const draggedItem = allLinks.find(l => l.id === draggedCardId);
             if (!draggedItem) return;
 
-            // 2. 如果是从其他组拖进来的，更新其 group_name
             const oldGroup = (draggedItem.group_name && customGroups.includes(draggedItem.group_name)) ? draggedItem.group_name : 'Unassigned';
             const isGroupChanged = (oldGroup !== targetGroup);
 
@@ -483,7 +537,6 @@
                 draggedItem.group_name = (targetGroup === 'Unassigned') ? null : targetGroup;
             }
 
-            // 3. 重新排序数组
             if (targetRow && targetRow.dataset.id !== draggedCardId) {
                 const draggedIndex = allLinks.findIndex(l => l.id === draggedCardId);
                 const targetIndex = allLinks.findIndex(l => l.id === targetRow.dataset.id);
@@ -504,7 +557,6 @@
         }
 
         async function saveNewOrderAndGroupToDatabase(movedId, newGroup) {
-            // 同步更新数据库中的排序与分组
             for (let i = 0; i < allLinks.length; i++) {
                 const link = allLinks[i];
                 const updateData = { sort_order: i + 1 };
@@ -527,7 +579,6 @@
             renderLinks(filtered);
         }
 
-        // 核心增删改与密码鉴权逻辑保持不变
         async function fetchAndShowInfo(linkId) {
             const infoDiv = document.getElementById(`info-${linkId}`);
             if (infoDiv.style.display === 'block') {
@@ -578,7 +629,6 @@
                     .eq('id', link.id);
             }
 
-            // 新创建的链接默认 group_name 为 null（即进入 Unassigned 区域）
             const { data: linkData, error: linkError } = await supabaseClient
                 .from('company_links')
                 .insert([{ name: name, url: url, created_by: user, priority: 0, category: category, group_name: null, sort_order: newSortOrder }])
