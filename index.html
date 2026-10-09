@@ -161,11 +161,11 @@
         .drag-row { cursor: grab; user-select: none; }
         .drag-row:active { cursor: grabbing; }
         .drag-row:hover { background-color: #f8fafc; }
-        .drag-row.important { background-color: #fffbeb; } /* 置顶淡黄色背景 */
+        .drag-row.important { background-color: #fffbeb; } 
         .drag-row.important:hover { background-color: #fef3c7; }
         
         .drag-row.dragging { opacity: 0.5; background-color: #f1f5f9; }
-        .drag-row.drag-over { border-top: 3px solid #2563eb; }
+        .drag-row.drag-over { border-top: 3px solid #2563eb; background-color: #e0f2fe; }
 
         /* 表格内的内容样式 */
         .drag-handle { color: #94a3b8; margin-right: 10px; font-weight: bold; }
@@ -178,8 +178,8 @@
         /* 弹窗样式 */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(3px); align-items: center; justify-content: center; }
         .modal-content { background-color: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 420px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; }
-        .modal-content input, .modal-content select { width: 100%; box-sizing: border-box; padding: 12px; margin: 8px 0 20px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; background: white; }
-        .modal-content input:focus, .modal-content select:focus { border-color: #2563eb; outline: none; }
+        .modal-content input { width: 100%; box-sizing: border-box; padding: 12px; margin: 8px 0 20px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; background: white; }
+        .modal-content input:focus { border-color: #2563eb; outline: none; }
         .close-btn { position: absolute; right: 20px; top: 20px; font-size: 24px; color: #94a3b8; cursor: pointer; line-height: 1; }
         .close-btn:hover { color: #ef4444; }
         .form-label { font-size: 13px; font-weight: bold; color: #475569; }
@@ -192,7 +192,7 @@
     <div class="sidebar">
         <div class="sidebar-top">
             <h2>🔗 Link Directory</h2>
-            <div class="categories-title">Categories</div>
+            <div class="categories-title">Groups</div>
             <div id="sidebarMenu">
                 <!-- 菜单将根据分类自动生成 -->
                 <p style="color: #64748b; font-size: 13px;">Loading...</p>
@@ -209,7 +209,7 @@
     <!-- 右侧主要内容 -->
     <div class="main-content">
         <h2 style="color: #0f172a; margin-top: 0; margin-bottom: 5px;">Company Links Directory</h2>
-        <div class="drag-hint">Tip: Pinned rows stay at the top. Drag and drop any row to reorder!</div>
+        <div class="drag-hint">Tip: New links start in "Unassigned". Drag any row into another group table to move it there instantly!</div>
         <br>
 
         <div class="top-bar">
@@ -222,20 +222,20 @@
         </div>
     </div>
 
-    <!-- 弹窗：添加分类 (Add Group) -->
+    <!-- 弹窗：添加分组 (Add Group) -->
     <div id="groupModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('groupModal')">&times;</span>
             <h3 style="margin-top: 0; margin-bottom: 20px; color: #0f172a;">+ Add New Group</h3>
             
             <label class="form-label">Group Name *</label>
-            <input type="text" id="newGroupName" placeholder="e.g., Core Systems, Finance" required>
+            <input type="text" id="newGroupName" placeholder="e.g., Calculators, Dashboards, Systems" required>
             
             <button class="btn-success" onclick="addGroup()">Create Group</button>
         </div>
     </div>
 
-    <!-- 弹窗：添加链接 -->
+    <!-- 弹窗：添加链接 (不强制绑定Group，默认进 Unassigned) -->
     <div id="addModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('addModal')">&times;</span>
@@ -247,11 +247,8 @@
             <label class="form-label">URL / Website Link *</label>
             <input type="url" id="linkUrl" placeholder="https://..." required>
             
-            <label class="form-label">Category / Group *</label>
-            <select id="linkCategorySelect" style="width:15px;">
-                <!-- 动态填充现有分类 -->
-            </select>
-            <input type="text" id="linkCategory" placeholder="Or type new category name" style="margin-top: -10px;">
+            <label class="form-label">Department / Tag (Optional)</label>
+            <input type="text" id="linkCategory" placeholder="e.g., Emulsion, HR, Logistics">
             
             <label class="form-label">Login Info / Remarks (Hidden by default)</label>
             <input type="text" id="loginInfo" placeholder="e.g., [shiuank:123456]">
@@ -277,7 +274,7 @@
             <label class="form-label">URL / Website Link *</label>
             <input type="url" id="editLinkUrl" required>
             
-            <label class="form-label">Category (Group Name)</label>
+            <label class="form-label">Department / Tag</label>
             <input type="text" id="editLinkCategory">
             
             <label class="form-label">Update Login Info (Leave blank if no change)</label>
@@ -293,13 +290,10 @@
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let allLinks = [];
-        let customGroups = []; // 用户自主创建的空分组列表
+        let customGroups = ['Calculators', 'Dashboards', 'Core Systems']; // 默认初始分组
         let draggedCardId = null;
 
-        function openModal(modalId) { 
-            document.getElementById(modalId).style.display = 'flex'; 
-            if(modalId === 'addModal') updateCategoryDropdown();
-        }
+        function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
         function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
         
         window.onclick = function(event) {
@@ -332,35 +326,29 @@
             container.innerHTML = ''; 
             sidebar.innerHTML = '';
 
-            // 1. 收集所有的 Category（包含已有数据的分类 + 用户新建的空分类）
+            // 1. 初始化分组映射：包含所有预设/自定义的 Group，外加一个 'Unassigned'
             const groupMap = {};
-            
-            // 先把自定义空分组加载进来
             customGroups.forEach(g => { groupMap[g] = []; });
+            groupMap['Unassigned'] = [];
 
-            // 再把现有数据的分类填进去
+            // 2. 将数据放入对应的 Group 中（如果没有 group 或匹配不上，则归入 Unassigned）
             links.forEach(link => {
-                const category = link.category ? link.category.trim() : 'Others';
-                if (!groupMap[category]) groupMap[category] = [];
-                groupMap[category].push(link);
+                const groupName = (link.group_name && groupMap[link.group_name]) ? link.group_name : 'Unassigned';
+                groupMap[groupName].push(link);
             });
 
-            const sortedCategories = Object.keys(groupMap).sort();
+            // 确保 Unassigned 排在最前面或按需排列，其余按字母排序
+            const groupKeys = ['Unassigned', ...customGroups.filter(g => g !== 'Unassigned')];
 
-            if (sortedCategories.length === 0) {
-                container.innerHTML = '<p style="color: #64748b;">No categories or links available yet.</p>';
-                return;
-            }
-
-            // 2. 生成左侧导航和右侧表格
-            sortedCategories.forEach(category => {
-                const safeId = "group-" + category.replace(/\s+/g, '-').toLowerCase();
-                const itemsCount = groupMap[category].length;
+            // 3. 生成左侧导航和右侧表格
+            groupKeys.forEach(groupName => {
+                const safeId = "group-" + groupName.replace(/\s+/g, '-').toLowerCase();
+                const itemsCount = groupMap[groupName].length;
 
                 // 左侧菜单项（带徽章计数）
                 sidebar.innerHTML += `
                     <a href="#${safeId}" class="sidebar-link">
-                        <span>📁 ${category}</span>
+                        <span>📁 ${groupName}</span>
                         <span class="badge">${itemsCount}</span>
                     </a>
                 `;
@@ -369,11 +357,12 @@
                 const section = document.createElement('div');
                 section.className = 'category-section';
                 section.id = safeId;
+                section.dataset.groupName = groupName; // 记录当前表格所属的 Group 名称
 
                 section.innerHTML = `
                     <div class="category-title-wrap">
                         <div class="category-indicator"></div>
-                        <h3 class="category-title">${category}</h3>
+                        <h3 class="category-title">${groupName}</h3>
                     </div>
                     <table>
                         <thead>
@@ -392,10 +381,10 @@
 
                 if (itemsCount === 0) {
                     const emptyTr = document.createElement('tr');
-                    emptyTr.innerHTML = `<td colspan="4" style="text-align: center; color: #94a3b8; font-style: italic; padding: 20px;">No links in this group yet. Click "+ Add New Link" to add one.</td>`;
+                    emptyTr.innerHTML = `<td colspan="4" style="text-align: center; color: #94a3b8; font-style: italic; padding: 20px;">Drag links here to add them to ${groupName}.</td>`;
                     tbody.appendChild(emptyTr);
                 } else {
-                    groupMap[category].forEach(link => {
+                    groupMap[groupName].forEach(link => {
                         const isImportant = link.priority > 0;
                         const tr = document.createElement('tr');
                         tr.className = isImportant ? 'drag-row important' : 'drag-row';
@@ -452,23 +441,7 @@
             renderLinks(allLinks);
         }
 
-        // 填充添加链接时的下拉分类菜单
-        function updateCategoryDropdown() {
-            const select = document.getElementById('linkCategorySelect');
-            const input = document.getElementById('linkCategory');
-            select.innerHTML = '<option value="">-- Select existing group or type below --</option>';
-            
-            const categoriesSet = new Set([...customGroups, ...allLinks.map(l => l.category || 'General')]);
-            categoriesSet.forEach(cat => {
-                select.innerHTML += `<option value="${cat}">${cat}</option>`;
-            });
-
-            select.onchange = function() {
-                if (this.value) input.value = this.value;
-            };
-        }
-
-        // 拖拽排序逻辑
+        // 拖拽排序与跨组移动逻辑
         function handleDragStart(e) {
             draggedCardId = this.dataset.id;
             this.classList.add('dragging');
@@ -492,22 +465,36 @@
         async function handleDrop(e) {
             e.preventDefault();
             const targetRow = e.target.closest('.drag-row');
-            if (!targetRow) return;
-            targetRow.classList.remove('drag-over');
+            const targetSection = e.target.closest('.category-section');
+            if (!targetSection) return;
 
-            const targetCardId = targetRow.dataset.id;
-            if (draggedCardId === targetCardId) return;
+            if (targetRow) targetRow.classList.remove('drag-over');
 
-            const draggedIndex = allLinks.findIndex(l => l.id === draggedCardId);
-            const targetIndex = allLinks.findIndex(l => l.id === targetCardId);
-            
-            if (draggedIndex < 0 || targetIndex < 0) return;
+            // 1. 获取目标表格对应的 Group 名称
+            const targetGroup = targetSection.dataset.groupName;
+            const draggedItem = allLinks.find(l => l.id === draggedCardId);
+            if (!draggedItem) return;
 
-            const [movedItem] = allLinks.splice(draggedIndex, 1);
-            allLinks.splice(targetIndex, 0, movedItem);
+            // 2. 如果是从其他组拖进来的，更新其 group_name
+            const oldGroup = (draggedItem.group_name && customGroups.includes(draggedItem.group_name)) ? draggedItem.group_name : 'Unassigned';
+            const isGroupChanged = (oldGroup !== targetGroup);
+
+            if (isGroupChanged) {
+                draggedItem.group_name = (targetGroup === 'Unassigned') ? null : targetGroup;
+            }
+
+            // 3. 重新排序数组
+            if (targetRow && targetRow.dataset.id !== draggedCardId) {
+                const draggedIndex = allLinks.findIndex(l => l.id === draggedCardId);
+                const targetIndex = allLinks.findIndex(l => l.id === targetRow.dataset.id);
+                if (draggedIndex >= 0 && targetIndex >= 0) {
+                    const [movedItem] = allLinks.splice(draggedIndex, 1);
+                    allLinks.splice(targetIndex, 0, movedItem);
+                }
+            }
 
             renderLinks(allLinks);
-            await saveNewOrderToDatabase();
+            await saveNewOrderAndGroupToDatabase(draggedCardId, draggedItem.group_name);
         }
 
         function handleDragEnd() {
@@ -516,13 +503,18 @@
             });
         }
 
-        async function saveNewOrderToDatabase() {
+        async function saveNewOrderAndGroupToDatabase(movedId, newGroup) {
+            // 同步更新数据库中的排序与分组
             for (let i = 0; i < allLinks.length; i++) {
-                const linkId = allLinks[i].id;
+                const link = allLinks[i];
+                const updateData = { sort_order: i + 1 };
+                if (link.id === movedId) {
+                    updateData.group_name = newGroup;
+                }
                 await supabaseClient
                     .from('company_links')
-                    .update({ sort_order: i + 1 })
-                    .eq('id', linkId);
+                    .update(updateData)
+                    .eq('id', link.id);
             }
         }
 
@@ -586,9 +578,10 @@
                     .eq('id', link.id);
             }
 
+            // 新创建的链接默认 group_name 为 null（即进入 Unassigned 区域）
             const { data: linkData, error: linkError } = await supabaseClient
                 .from('company_links')
-                .insert([{ name: name, url: url, created_by: user, priority: 0, category: category, sort_order: newSortOrder }])
+                .insert([{ name: name, url: url, created_by: user, priority: 0, category: category, group_name: null, sort_order: newSortOrder }])
                 .select(); 
 
             if (linkError) {
