@@ -146,9 +146,9 @@
         .btn-toggle-info { background: #f8fafc; border: 1px solid #cbd5e1; color: #475569; font-size: 12px; padding: 5px 10px; border-radius: 4px; }
         .btn-toggle-info:hover { background: #f1f5f9; }
 
-        /* 分类标题与表格区域 */
+        /* 分类标题与表格区域 (使用内阴影高亮，避免改变布局引起抖动) */
         .category-section { margin-bottom: 40px; scroll-margin-top: 20px; border-radius: 8px; transition: background 0.2s; }
-        .category-section.drag-over-section { background: #e0f2fe; padding: 10px; border: 2px dashed #2563eb; }
+        .category-section.drag-over-section { background: #e0f2fe; box-shadow: inset 0 0 0 2px #2563eb; }
 
         .category-title-wrap {
             display: flex;
@@ -234,10 +234,10 @@
         </div>
     </div>
 
-    <!-- 右侧主要内容 (支持拖拽时用鼠标滚轮滚动) -->
+    <!-- 右侧主要内容 (拖拽时将鼠标移到顶部或底部边缘即可自动上下滚动) -->
     <div class="main-content" id="mainContentArea">
         <h2 style="color: #0f172a; margin-top: 0; margin-bottom: 5px;">Company Links Directory</h2>
-        <div class="drag-hint">Tip: You can use your mouse wheel to scroll while dragging rows, or drag near the top/bottom edge to auto-scroll!</div>
+        <div class="drag-hint">Tip: Drag any row near the top or bottom edge of the screen while dragging to auto-scroll smoothly!</div>
         <br>
 
         <div class="top-bar">
@@ -322,6 +322,7 @@
         let linkGroupMap = JSON.parse(localStorage.getItem('nbt_link_group_map')) || {};
 
         let draggedCardId = null;
+        let scrollInterval = null;
 
         function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
         function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
@@ -496,7 +497,7 @@
             renderLinks(allLinks);
         }
 
-        // 拖拽相关事件处理（含边缘自动滚动 Auto-scroll & 鼠标滚轮滚动支持）
+        // 拖拽相关事件处理（含边缘平滑自动滚动 Auto-scroll）
         function handleDragStart(e) {
             draggedCardId = this.dataset.id;
             this.classList.add('dragging');
@@ -505,18 +506,21 @@
 
         const mainContentArea = document.getElementById('mainContentArea');
 
-        // 允许在拖拽时使用鼠标滚轮滚动主内容区
-        mainContentArea.addEventListener('wheel', (e) => {
-            if (draggedCardId) {
-                mainContentArea.scrollTop += e.deltaY;
+        function clearScrollInterval() {
+            if (scrollInterval) {
+                clearInterval(scrollInterval);
+                scrollInterval = null;
             }
-        }, { passive: true });
+        }
 
         mainContentArea.addEventListener('dragover', (e) => {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
 
             const section = e.target.closest('.category-section');
+            document.querySelectorAll('.category-section').forEach(sec => {
+                sec.classList.remove('drag-over-section');
+            });
             if (section) {
                 section.classList.add('drag-over-section');
             }
@@ -524,12 +528,24 @@
             // 边缘自动滚动逻辑
             const rect = mainContentArea.getBoundingClientRect();
             const mouseY = e.clientY;
-            const threshold = 80; // 距离上下边缘80px时触发滚动
+            const threshold = 90; // 距离上下边缘90px时触发滚动
 
             if (mouseY - rect.top < threshold) {
-                mainContentArea.scrollTop -= 15; // 向上滚动
+                // 向上滚动
+                if (!scrollInterval) {
+                    scrollInterval = setInterval(() => {
+                        mainContentArea.scrollTop -= 20;
+                    }, 20);
+                }
             } else if (rect.bottom - mouseY < threshold) {
-                mainContentArea.scrollTop += 15; // 向下滚动
+                // 向下滚动
+                if (!scrollInterval) {
+                    scrollInterval = setInterval(() => {
+                        mainContentArea.scrollTop += 20;
+                    }, 20);
+                }
+            } else {
+                clearScrollInterval();
             }
         });
 
@@ -546,6 +562,7 @@
 
         async function handleDrop(e) {
             e.preventDefault();
+            clearScrollInterval();
             const section = e.target.closest('.category-section');
             if (!section) return;
             section.classList.remove('drag-over-section');
@@ -580,6 +597,7 @@
         }
 
         function handleDragEnd() {
+            clearScrollInterval();
             draggedCardId = null;
             document.querySelectorAll('.drag-row').forEach(row => {
                 row.classList.remove('dragging');
