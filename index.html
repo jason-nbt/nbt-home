@@ -11,7 +11,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             margin: 0; 
             padding: 0; 
-            background: #f1f5f9; /* 浅灰底色突出表格 */
+            background: #f1f5f9; 
             display: flex; 
             height: 100vh;
             overflow: hidden;
@@ -19,8 +19,8 @@
 
         /* 左侧固定的侧边栏 (深蓝色) */
         .sidebar {
-            width: 250px;
-            background: #0f172a; /* 深蓝色 */
+            width: 260px;
+            background: #0f172a; 
             color: #f8fafc;
             height: 100vh;
             padding: 25px 20px;
@@ -28,31 +28,72 @@
             position: fixed;
             left: 0;
             top: 0;
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            z-index: 10;
         }
-        .sidebar h2 { font-size: 18px; margin-top: 0; margin-bottom: 25px; color: #38bdf8; letter-spacing: 0.5px; }
+        .sidebar-top { overflow-y: auto; flex-grow: 1; }
+        .sidebar h2 { font-size: 17px; margin-top: 0; margin-bottom: 25px; color: #ffffff; display: flex; align-items: center; gap: 8px; }
+        .categories-title { font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 1px; margin-bottom: 12px; font-weight: bold; }
+        
         .sidebar-link {
-            display: block;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             color: #94a3b8;
             text-decoration: none;
             padding: 10px 12px;
             border-radius: 6px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             font-size: 14px;
             transition: all 0.2s;
-            border-left: 3px solid transparent;
         }
         .sidebar-link:hover {
             background: #1e293b;
             color: #ffffff;
-            border-left-color: #38bdf8;
+        }
+        .sidebar-link .badge {
+            background: #1e293b;
+            color: #cbd5e1;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        .sidebar-link:hover .badge { background: #334155; color: white; }
+
+        /* 左侧底部的 Add Group 按钮样式 */
+        .sidebar-bottom {
+            padding-top: 15px;
+            border-top: 1px solid #1e293b;
+        }
+        .btn-add-group {
+            width: 100%;
+            background: #1e293b;
+            color: #f8fafc;
+            border: 1px dashed #475569;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .btn-add-group:hover {
+            background: #334155;
+            border-color: #64748b;
+            color: #ffffff;
         }
 
         /* 右侧主要内容区 */
         .main-content {
             flex-grow: 1;
-            margin-left: 250px; /* 留出侧边栏的位置 */
+            margin-left: 260px; 
             padding: 30px 40px;
             height: 100vh;
             overflow-y: auto;
@@ -68,36 +109,45 @@
         #searchBox:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
         
         button { border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
-        .btn-primary { background: #3b82f6; color: white; padding: 10px 20px; font-size: 15px; }
-        .btn-primary:hover { background: #2563eb; }
+        .btn-primary { background: #2563eb; color: white; padding: 10px 20px; font-size: 15px; }
+        .btn-primary:hover { background: #1d4ed8; }
         .btn-success { background: #10b981; color: white; width: 100%; padding: 12px; margin-top: 10px; font-size: 16px; }
         
         /* 表格操作按钮 */
-        .btn-action { font-size: 13px; padding: 6px 14px; color: white; min-width: 65px; text-align: center; }
-        .btn-pin { background: #f59e0b; }
-        .btn-edit { background: #3b82f6; }
-        .btn-delete { background: #ef4444; }
-        .btn-toggle-info { background: #e2e8f0; color: #475569; font-size: 12px; padding: 6px 12px; border-radius: 4px; }
-        .btn-toggle-info:hover { background: #cbd5e1; }
+        .btn-action { background: transparent; border: none; cursor: pointer; font-size: 16px; padding: 6px; border-radius: 4px; transition: background 0.2s; }
+        .btn-action:hover { background: #e2e8f0; }
+        .btn-toggle-info { background: #f8fafc; border: 1px solid #cbd5e1; color: #475569; font-size: 12px; padding: 5px 10px; border-radius: 4px; }
+        .btn-toggle-info:hover { background: #f1f5f9; }
 
         /* 分类标题 */
         .category-section { margin-bottom: 40px; scroll-margin-top: 20px; }
+        .category-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .category-indicator {
+            width: 4px;
+            height: 20px;
+            background: #2563eb;
+            border-radius: 2px;
+        }
         .category-title { 
-            font-size: 20px; color: #1e293b; margin-bottom: 15px; 
-            padding-bottom: 8px; border-bottom: 2px solid #3b82f6; display: inline-block;
+            font-size: 18px; color: #0f172a; font-weight: bold; margin: 0;
         }
 
-        /* 表格样式 (Procurement Dashboard 风格) */
+        /* 表格样式 */
         table { 
             width: 100%; border-collapse: collapse; background: white; 
-            border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.04);
         }
         th { 
-            background: #1e293b; /* 深色表头 */
+            background: #1e293b; 
             color: white; 
-            padding: 14px 20px; 
+            padding: 12px 20px; 
             text-align: left; 
-            font-size: 14px; 
+            font-size: 13px; 
             font-weight: 500; 
         }
         td { 
@@ -111,24 +161,25 @@
         .drag-row { cursor: grab; user-select: none; }
         .drag-row:active { cursor: grabbing; }
         .drag-row:hover { background-color: #f8fafc; }
-        .drag-row.important { background-color: #eff6ff; } /* 置顶的高亮背景 */
-        .drag-row.important:hover { background-color: #e0f2fe; }
+        .drag-row.important { background-color: #fffbeb; } /* 置顶淡黄色背景 */
+        .drag-row.important:hover { background-color: #fef3c7; }
         
         .drag-row.dragging { opacity: 0.5; background-color: #f1f5f9; }
-        .drag-row.drag-over { border-top: 3px solid #3b82f6; }
+        .drag-row.drag-over { border-top: 3px solid #2563eb; }
 
         /* 表格内的内容样式 */
-        .sys-title { font-size: 15px; color: #2563eb; text-decoration: none; font-weight: 600; display: block; margin-bottom: 4px; }
-        .sys-title:hover { text-decoration: underline; }
-        .td-meta { color: #64748b; font-size: 13px; line-height: 1.5; }
-        .td-actions { display: flex; gap: 8px; justify-content: flex-end; }
+        .drag-handle { color: #94a3b8; margin-right: 10px; font-weight: bold; }
+        .sys-title { font-size: 14px; color: #1e293b; text-decoration: none; font-weight: 600; }
+        .sys-title:hover { color: #2563eb; text-decoration: underline; }
+        .category-tag { background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 500; display: inline-block; }
+        .td-actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
         .hidden-info { display: none; background: #fff3cd; padding: 10px; border-radius: 6px; font-size: 13px; margin-top: 8px; border: 1px solid #ffeeba; color: #856404; word-break: break-all; }
 
-        /* 弹窗样式 (保持原有结构) */
+        /* 弹窗样式 */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(3px); align-items: center; justify-content: center; }
-        .modal-content { background-color: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; max-height: 90vh; overflow-y: auto; }
-        .modal-content input { width: 100%; box-sizing: border-box; padding: 12px; margin: 8px 0 20px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; }
-        .modal-content input:focus { border-color: #3b82f6; outline: none; }
+        .modal-content { background-color: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 420px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; }
+        .modal-content input, .modal-content select { width: 100%; box-sizing: border-box; padding: 12px; margin: 8px 0 20px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; background: white; }
+        .modal-content input:focus, .modal-content select:focus { border-color: #2563eb; outline: none; }
         .close-btn { position: absolute; right: 20px; top: 20px; font-size: 24px; color: #94a3b8; cursor: pointer; line-height: 1; }
         .close-btn:hover { color: #ef4444; }
         .form-label { font-size: 13px; font-weight: bold; color: #475569; }
@@ -139,27 +190,48 @@
 
     <!-- 左侧固定菜单栏 -->
     <div class="sidebar">
-        <h2>📁 System Directory</h2>
-        <div id="sidebarMenu">
-            <!-- 菜单将根据分类自动生成 -->
-            <p style="color: #64748b; font-size: 13px;">Loading categories...</p>
+        <div class="sidebar-top">
+            <h2>🔗 Link Directory</h2>
+            <div class="categories-title">Categories</div>
+            <div id="sidebarMenu">
+                <!-- 菜单将根据分类自动生成 -->
+                <p style="color: #64748b; font-size: 13px;">Loading...</p>
+            </div>
+        </div>
+        
+        <div class="sidebar-bottom">
+            <button class="btn-add-group" onclick="openModal('groupModal')">
+                <span>+ Add Group</span>
+            </button>
         </div>
     </div>
 
     <!-- 右侧主要内容 -->
     <div class="main-content">
-        <h2 style="color: #0f172a; margin-top: 0; margin-bottom: 5px;">🔗 NBT Company System Links</h2>
-        <div class="drag-hint">Tip: Pinned rows stay at the top. Drag and drop any row to reorder! Add a new Category to create a group.</div>
+        <h2 style="color: #0f172a; margin-top: 0; margin-bottom: 5px;">Company Links Directory</h2>
+        <div class="drag-hint">Tip: Pinned rows stay at the top. Drag and drop any row to reorder!</div>
         <br>
 
         <div class="top-bar">
-            <input type="text" id="searchBox" placeholder="🔍 Search system name or category..." oninput="filterLinks()">
+            <input type="text" id="searchBox" placeholder="🔍 Search systems or tags..." oninput="filterLinks()">
             <button class="btn-primary" onclick="openModal('addModal')">+ Add New Link</button>
         </div>
 
-        <!-- 所有的表格数据将塞进这里 -->
         <div id="linksContainer">
             <p style="color: #64748b;">Loading data...</p>
+        </div>
+    </div>
+
+    <!-- 弹窗：添加分类 (Add Group) -->
+    <div id="groupModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal('groupModal')">&times;</span>
+            <h3 style="margin-top: 0; margin-bottom: 20px; color: #0f172a;">+ Add New Group</h3>
+            
+            <label class="form-label">Group Name *</label>
+            <input type="text" id="newGroupName" placeholder="e.g., Core Systems, Finance" required>
+            
+            <button class="btn-success" onclick="addGroup()">Create Group</button>
         </div>
     </div>
 
@@ -167,7 +239,7 @@
     <div id="addModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('addModal')">&times;</span>
-            <h3 style="margin-top: 0; margin-bottom: 20px; color: #3b82f6;">+ Add New Link</h3>
+            <h3 style="margin-top: 0; margin-bottom: 20px; color: #2563eb;">+ Add New Link</h3>
             
             <label class="form-label">System Name *</label>
             <input type="text" id="linkName" placeholder="e.g., HR Portal" required>
@@ -175,8 +247,11 @@
             <label class="form-label">URL / Website Link *</label>
             <input type="url" id="linkUrl" placeholder="https://..." required>
             
-            <label class="form-label">Category (Group Name) *</label>
-            <input type="text" id="linkCategory" placeholder="e.g., Logistics, Dashboard, System">
+            <label class="form-label">Category / Group *</label>
+            <select id="linkCategorySelect" style="width:15px;">
+                <!-- 动态填充现有分类 -->
+            </select>
+            <input type="text" id="linkCategory" placeholder="Or type new category name" style="margin-top: -10px;">
             
             <label class="form-label">Login Info / Remarks (Hidden by default)</label>
             <input type="text" id="loginInfo" placeholder="e.g., [shiuank:123456]">
@@ -192,7 +267,7 @@
     <div id="editModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('editModal')">&times;</span>
-            <h3 style="margin-top: 0; margin-bottom: 20px; color: #3b82f6;">Edit Link</h3>
+            <h3 style="margin-top: 0; margin-bottom: 20px; color: #2563eb;">Edit Link</h3>
             
             <input type="hidden" id="editLinkId">
 
@@ -213,19 +288,24 @@
     </div>
 
     <script>
-        // -- 核心数据库与逻辑完全保留 --
         const SUPABASE_URL = 'https://yvtujoueyotncbvdlgyf.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_98O37WT0nSZVw2I9128JOg___CX38Dn';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let allLinks = [];
+        let customGroups = []; // 用户自主创建的空分组列表
         let draggedCardId = null;
 
-        function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
+        function openModal(modalId) { 
+            document.getElementById(modalId).style.display = 'flex'; 
+            if(modalId === 'addModal') updateCategoryDropdown();
+        }
         function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
+        
         window.onclick = function(event) {
             if (event.target == document.getElementById('addModal')) closeModal('addModal');
             if (event.target == document.getElementById('editModal')) closeModal('editModal');
+            if (event.target == document.getElementById('groupModal')) closeModal('groupModal');
         }
 
         async function fetchLinks() {
@@ -245,106 +325,150 @@
             renderLinks(allLinks);
         }
 
-        // 修改后的渲染函数：按 Category 分组并生成表格
+        // 渲染页面与左侧导航
         function renderLinks(links) {
             const container = document.getElementById('linksContainer');
             const sidebar = document.getElementById('sidebarMenu');
             container.innerHTML = ''; 
             sidebar.innerHTML = '';
 
-            if (links.length === 0) {
-                container.innerHTML = '<p style="color: #64748b;">No data available yet.</p>';
+            // 1. 收集所有的 Category（包含已有数据的分类 + 用户新建的空分类）
+            const groupMap = {};
+            
+            // 先把自定义空分组加载进来
+            customGroups.forEach(g => { groupMap[g] = []; });
+
+            // 再把现有数据的分类填进去
+            links.forEach(link => {
+                const category = link.category ? link.category.trim() : 'Others';
+                if (!groupMap[category]) groupMap[category] = [];
+                groupMap[category].push(link);
+            });
+
+            const sortedCategories = Object.keys(groupMap).sort();
+
+            if (sortedCategories.length === 0) {
+                container.innerHTML = '<p style="color: #64748b;">No categories or links available yet.</p>';
                 return;
             }
 
-            // 1. 数据分组 (Grouping)
-            const groupedData = {};
-            links.forEach(link => {
-                const category = link.category ? link.category.trim() : 'Others';
-                if (!groupedData[category]) groupedData[category] = [];
-                groupedData[category].push(link);
-            });
-
-            // 2. 排序分类名，让左侧菜单好看点
-            const sortedCategories = Object.keys(groupedData).sort();
-
-            // 3. 生成左侧导航和右侧表格
+            // 2. 生成左侧导航和右侧表格
             sortedCategories.forEach(category => {
                 const safeId = "group-" + category.replace(/\s+/g, '-').toLowerCase();
-                
-                // 生成左侧导航按钮
-                sidebar.innerHTML += `<a href="#${safeId}" class="sidebar-link">📂 ${category} (${groupedData[category].length})</a>`;
+                const itemsCount = groupMap[category].length;
 
-                // 生成右侧的表格区
+                // 左侧菜单项（带徽章计数）
+                sidebar.innerHTML += `
+                    <a href="#${safeId}" class="sidebar-link">
+                        <span>📁 ${category}</span>
+                        <span class="badge">${itemsCount}</span>
+                    </a>
+                `;
+
+                // 右侧表格区域
                 const section = document.createElement('div');
                 section.className = 'category-section';
                 section.id = safeId;
 
-                // 表头与表结构
-                let tableHTML = `
-                    <h3 class="category-title">${category}</h3>
+                section.innerHTML = `
+                    <div class="category-title-wrap">
+                        <div class="category-indicator"></div>
+                        <h3 class="category-title">${category}</h3>
+                    </div>
                     <table>
                         <thead>
                             <tr>
-                                <th style="width: 30%;">System Name</th>
-                                <th style="width: 20%;">Added By & Date</th>
-                                <th style="width: 25%;">Details</th>
-                                <th style="width: 25%; text-align: right;">Actions</th>
+                                <th style="width: 38%;">System Name</th>
+                                <th style="width: 24%;">Department / Tag</th>
+                                <th style="width: 22%;">Details</th>
+                                <th style="width: 16%; text-align: right;">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody></tbody>
+                    </table>
                 `;
-                section.innerHTML = tableHTML;
-                const tbody = document.createElement('tbody');
+                
+                const tbody = section.querySelector('tbody');
 
-                // 塞入每一行 (Row) 的数据
-                groupedData[category].forEach(link => {
-                    const date = new Date(link.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                    const isImportant = link.priority > 0;
-                    
-                    const tr = document.createElement('tr');
-                    tr.className = isImportant ? 'drag-row important' : 'drag-row';
-                    tr.setAttribute('draggable', 'true');
-                    tr.dataset.id = link.id;
+                if (itemsCount === 0) {
+                    const emptyTr = document.createElement('tr');
+                    emptyTr.innerHTML = `<td colspan="4" style="text-align: center; color: #94a3b8; font-style: italic; padding: 20px;">No links in this group yet. Click "+ Add New Link" to add one.</td>`;
+                    tbody.appendChild(emptyTr);
+                } else {
+                    groupMap[category].forEach(link => {
+                        const isImportant = link.priority > 0;
+                        const tr = document.createElement('tr');
+                        tr.className = isImportant ? 'drag-row important' : 'drag-row';
+                        tr.setAttribute('draggable', 'true');
+                        tr.dataset.id = link.id;
 
-                    // 挂载拖拽事件到 tr 标签上
-                    tr.addEventListener('dragstart', handleDragStart);
-                    tr.addEventListener('dragover', handleDragOver);
-                    tr.addEventListener('dragleave', handleDragLeave);
-                    tr.addEventListener('drop', handleDrop);
-                    tr.addEventListener('dragend', handleDragEnd);
+                        tr.addEventListener('dragstart', handleDragStart);
+                        tr.addEventListener('dragover', handleDragOver);
+                        tr.addEventListener('dragleave', handleDragLeave);
+                        tr.addEventListener('drop', handleDrop);
+                        tr.addEventListener('dragend', handleDragEnd);
 
-                    tr.innerHTML = `
-                        <td>
-                            <a href="${link.url}" target="_blank" class="sys-title" title="${link.url}">${link.name}</a>
-                            ${isImportant ? '<span style="font-size:11px; color:#f59e0b; font-weight:bold;">📌 Pinned</span>' : ''}
-                        </td>
-                        <td class="td-meta">
-                            <strong>${link.created_by}</strong><br>${date}
-                        </td>
-                        <td>
-                            <button class="btn-toggle-info" onclick="fetchAndShowInfo('${link.id}')">Show Info / Login</button>
-                            <div id="info-${link.id}" class="hidden-info"></div>
-                        </td>
-                        <td class="td-actions">
-                            <button class="btn-action btn-pin" style="background: ${isImportant ? '#64748b' : '#f59e0b'};" onclick="toggleImportant('${link.id}', ${link.priority})">
-                                ${isImportant ? 'Unpin' : 'Pin'}
-                            </button>
-                            <button class="btn-action btn-edit" onclick="openEditForm('${link.id}')">Edit</button>
-                            <button class="btn-action btn-delete" onclick="deleteLink('${link.id}')">Delete</button>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
+                        tr.innerHTML = `
+                            <td>
+                                <span class="drag-handle">☰</span>
+                                <a href="${link.url}" target="_blank" class="sys-title">${link.name}</a>
+                                <span style="font-size:12px; color:#2563eb; margin-left:6px;">↗</span>
+                            </td>
+                            <td>
+                                <span class="category-tag">${link.category || 'General'}</span>
+                            </td>
+                            <td>
+                                <button class="btn-toggle-info" onclick="fetchAndShowInfo('${link.id}')">Show Info / Login</button>
+                                <div id="info-${link.id}" class="hidden-info"></div>
+                            </td>
+                            <td class="td-actions">
+                                <button class="btn-action" title="${isImportant ? 'Unpin' : 'Pin'}" onclick="toggleImportant('${link.id}', ${link.priority})">
+                                    ${isImportant ? '📌' : '📍'}
+                                </button>
+                                <button class="btn-action" title="Edit" onclick="openEditForm('${link.id}')">✏️</button>
+                                <button class="btn-action" title="Delete" onclick="deleteLink('${link.id}')">🗑️</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
 
-                // 将tbody组合进table
-                const table = section.querySelector('table');
-                table.appendChild(tbody);
                 container.appendChild(section);
             });
         }
 
-        // 修改拖拽交互 (改为匹配 .drag-row)
+        // 新增分组函数 (Add Group)
+        function addGroup() {
+            const groupName = document.getElementById('newGroupName').value.trim();
+            if (!groupName) {
+                alert("Please enter a group name!");
+                return;
+            }
+            if (!customGroups.includes(groupName)) {
+                customGroups.push(groupName);
+            }
+            document.getElementById('newGroupName').value = '';
+            closeModal('groupModal');
+            renderLinks(allLinks);
+        }
+
+        // 填充添加链接时的下拉分类菜单
+        function updateCategoryDropdown() {
+            const select = document.getElementById('linkCategorySelect');
+            const input = document.getElementById('linkCategory');
+            select.innerHTML = '<option value="">-- Select existing group or type below --</option>';
+            
+            const categoriesSet = new Set([...customGroups, ...allLinks.map(l => l.category || 'General')]);
+            categoriesSet.forEach(cat => {
+                select.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
+
+            select.onchange = function() {
+                if (this.value) input.value = this.value;
+            };
+        }
+
+        // 拖拽排序逻辑
         function handleDragStart(e) {
             draggedCardId = this.dataset.id;
             this.classList.add('dragging');
@@ -411,7 +535,7 @@
             renderLinks(filtered);
         }
 
-        // -- 以下所有增删改、Pin、密码逻辑一字未改，保持原样 --
+        // 核心增删改与密码鉴权逻辑保持不变
         async function fetchAndShowInfo(linkId) {
             const infoDiv = document.getElementById(`info-${linkId}`);
             if (infoDiv.style.display === 'block') {
@@ -444,7 +568,7 @@
         async function addLink() {
             const name = document.getElementById('linkName').value.trim();
             const url = document.getElementById('linkUrl').value.trim();
-            const category = document.getElementById('linkCategory').value.trim();
+            const category = document.getElementById('linkCategory').value.trim() || 'General';
             const loginInfo = document.getElementById('loginInfo').value.trim();
             const user = document.getElementById('userName').value.trim();
             
