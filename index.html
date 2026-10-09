@@ -146,8 +146,10 @@
         .btn-toggle-info { background: #f8fafc; border: 1px solid #cbd5e1; color: #475569; font-size: 12px; padding: 5px 10px; border-radius: 4px; }
         .btn-toggle-info:hover { background: #f1f5f9; }
 
-        /* 分类标题 */
-        .category-section { margin-bottom: 40px; scroll-margin-top: 20px; }
+        /* 分类标题与表格区域 */
+        .category-section { margin-bottom: 40px; scroll-margin-top: 20px; border-radius: 8px; transition: background 0.2s; }
+        .category-section.drag-over-section { background: #e0f2fe; padding: 10px; border: 2px dashed #2563eb; } /* 拖拽悬停时的提示框 */
+
         .category-title-wrap {
             display: flex;
             align-items: center;
@@ -192,7 +194,6 @@
         .drag-row.important:hover { background-color: #fef3c7; }
         
         .drag-row.dragging { opacity: 0.5; background-color: #f1f5f9; }
-        .drag-row.drag-over { border-top: 3px solid #2563eb; background-color: #e0f2fe; }
 
         /* 表格内的内容样式 */
         .drag-handle { color: #94a3b8; margin-right: 10px; font-weight: bold; }
@@ -236,7 +237,7 @@
     <!-- 右侧主要内容 -->
     <div class="main-content">
         <h2 style="color: #0f172a; margin-top: 0; margin-bottom: 5px;">Company Links Directory</h2>
-        <div class="drag-hint">Tip: New links start in "Unassigned". Drag any row into another group table to move it there instantly!</div>
+        <div class="drag-hint">Tip: New links start in "Unassigned". Drag any row into any group table below to move it there instantly!</div>
         <br>
 
         <div class="top-bar">
@@ -317,8 +318,6 @@
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let allLinks = [];
-        
-        // 从本地缓存读取自定义分组与分组映射，无需改动数据库表结构
         let customGroups = JSON.parse(localStorage.getItem('nbt_custom_groups')) || ['Calculators', 'Dashboards', 'Core Systems'];
         let linkGroupMap = JSON.parse(localStorage.getItem('nbt_link_group_map')) || {};
 
@@ -388,10 +387,15 @@
                     </div>
                 `;
 
+                // 每个分类区块绑定拖拽事件（支持空表格直接拖入）
                 const section = document.createElement('div');
                 section.className = 'category-section';
                 section.id = safeId;
                 section.dataset.groupName = groupName;
+
+                section.addEventListener('dragover', handleDragOver);
+                section.addEventListener('dragleave', handleDragLeave);
+                section.addEventListener('drop', handleDrop);
 
                 section.innerHTML = `
                     <div class="category-title-wrap">
@@ -426,10 +430,6 @@
                         tr.dataset.id = link.id;
 
                         tr.addEventListener('dragstart', handleDragStart);
-                        tr.addEventListener('dragover', handleDragOver);
-                        tr.addEventListener('dragleave', handleDragLeave);
-                        tr.addEventListener('drop', handleDrop);
-                        tr.addEventListener('dragend', handleDragEnd);
 
                         tr.innerHTML = `
                             <td>
@@ -486,7 +486,6 @@
             customGroups = customGroups.filter(g => g !== groupName);
             localStorage.setItem('nbt_custom_groups', JSON.stringify(customGroups));
 
-            // 清除该组内所有链接的映射关系
             for (let id in linkGroupMap) {
                 if (linkGroupMap[id] === groupName) {
                     delete linkGroupMap[id];
@@ -497,7 +496,7 @@
             renderLinks(allLinks);
         }
 
-        // 拖拽排序与跨组移动逻辑
+        // 拖拽相关事件处理
         function handleDragStart(e) {
             draggedCardId = this.dataset.id;
             this.classList.add('dragging');
@@ -507,32 +506,30 @@
         function handleDragOver(e) {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
-            const row = e.target.closest('.drag-row');
-            if (row && row.dataset.id !== draggedCardId) {
-                row.classList.add('drag-over');
+            const section = e.target.closest('.category-section');
+            if (section) {
+                section.classList.add('drag-over-section');
             }
         }
 
         function handleDragLeave(e) {
-            const row = e.target.closest('.drag-row');
-            if (row) row.classList.remove('drag-over');
+            const section = e.target.closest('.category-section');
+            if (section) {
+                section.classList.remove('drag-over-section');
+            }
         }
 
         async function handleDrop(e) {
             e.preventDefault();
-            const targetRow = e.target.closest('.drag-row');
-            const targetSection = e.target.closest('.category-section');
-            if (!targetSection) return;
+            const section = e.target.closest('.category-section');
+            if (!section) return;
+            section.classList.remove('drag-over-section');
 
-            if (targetRow) targetRow.classList.remove('drag-over');
-
-            const targetGroup = targetSection.dataset.groupName;
+            const targetGroup = section.dataset.groupName;
             const draggedIndex = allLinks.findIndex(l => l.id === draggedCardId);
             if (draggedIndex < 0) return;
 
-            const draggedItem = allLinks[draggedIndex];
-
-            // 更新该卡片的分组映射并存入本地缓存
+            // 更新分组映射
             if (targetGroup === 'Unassigned') {
                 delete linkGroupMap[draggedCardId];
             } else {
@@ -540,12 +537,19 @@
             }
             localStorage.setItem('nbt_link_group_map', JSON.stringify(linkGroupMap));
 
+            // 如果拖到了具体某一行上面，可以进行精细排序，否则放到该组末尾
+            const targetRow = e.target.closest('.drag-row');
+            const [movedItem] = allLinks.splice(draggedIndex, 1);
+            
             if (targetRow && targetRow.dataset.id !== draggedCardId) {
                 const targetIndex = allLinks.findIndex(l => l.id === targetRow.dataset.id);
                 if (targetIndex >= 0) {
-                    const [movedItem] = allLinks.splice(draggedIndex, 1);
                     allLinks.splice(targetIndex, 0, movedItem);
+                } else {
+                    allLinks.push(movedItem);
                 }
+            } else {
+                allLinks.push(movedItem);
             }
 
             renderLinks(allLinks);
@@ -554,7 +558,10 @@
 
         function handleDragEnd() {
             document.querySelectorAll('.drag-row').forEach(row => {
-                row.classList.remove('dragging', 'drag-over');
+                row.classList.remove('dragging');
+            });
+            document.querySelectorAll('.category-section').forEach(sec => {
+                sec.classList.remove('drag-over-section');
             });
         }
 
@@ -700,6 +707,7 @@
                 }
             }
 
+            closeModal('editManager'); // safe fallback
             closeModal('editModal');
             fetchLinks();
         }
