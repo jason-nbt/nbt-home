@@ -1,92 +1,173 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="scroll-behavior: smooth;">
 <head>
     <meta charset="UTF-8">
     <title>NBT-Home Links</title>
     <link rel="icon" type="image/png" href="NBT.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 1000px; margin: 40px auto; padding: 20px; background: #f4f7f6; }
+        /* 深蓝色系与全局基础重置 */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background: #f1f5f9; /* 浅灰底色突出表格 */
+            display: flex; 
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 左侧固定的侧边栏 (深蓝色) */
+        .sidebar {
+            width: 250px;
+            background: #0f172a; /* 深蓝色 */
+            color: #f8fafc;
+            height: 100vh;
+            padding: 25px 20px;
+            box-sizing: border-box;
+            position: fixed;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        .sidebar h2 { font-size: 18px; margin-top: 0; margin-bottom: 25px; color: #38bdf8; letter-spacing: 0.5px; }
+        .sidebar-link {
+            display: block;
+            color: #94a3b8;
+            text-decoration: none;
+            padding: 10px 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        .sidebar-link:hover {
+            background: #1e293b;
+            color: #ffffff;
+            border-left-color: #38bdf8;
+        }
+
+        /* 右侧主要内容区 */
+        .main-content {
+            flex-grow: 1;
+            margin-left: 250px; /* 留出侧边栏的位置 */
+            padding: 30px 40px;
+            height: 100vh;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        /* 顶部操作栏 */
+        .top-bar { 
+            display: flex; gap: 15px; margin-bottom: 30px; align-items: center; 
+            background: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+        }
+        #searchBox { flex-grow: 1; font-size: 15px; padding: 10px 15px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; }
+        #searchBox:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
         
-        .top-bar { display: flex; gap: 15px; margin-bottom: 25px; align-items: center; flex-wrap: wrap; }
-        #searchBox { flex-grow: 1; font-size: 16px; padding: 12px; border: 2px solid #007bff; border-radius: 6px; outline: none; }
+        button { border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
+        .btn-primary { background: #3b82f6; color: white; padding: 10px 20px; font-size: 15px; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-success { background: #10b981; color: white; width: 100%; padding: 12px; margin-top: 10px; font-size: 16px; }
         
-        button { padding: 10px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
-        .btn-primary { background: #007bff; color: white; font-size: 16px; }
-        .btn-primary:hover { background: #0056b3; }
-        .btn-success { background: #28a745; color: white; width: 100%; margin-top: 10px; font-size: 16px; }
-        .btn-delete { background: #dc3545; color: white; font-size: 12px; padding: 6px 12px; }
-        .btn-pin { font-size: 12px; padding: 6px 12px; color: white; }
-        .btn-edit { background: #ffc107; color: #212529; font-size: 12px; padding: 6px 12px; }
-        .btn-toggle-info { background: #e2e8f0; color: #475569; font-size: 12px; padding: 5px 10px; margin-top: 10px; border-radius: 4px; display: inline-flex; align-items: center; gap: 5px;}
+        /* 表格操作按钮 */
+        .btn-action { font-size: 13px; padding: 6px 14px; color: white; min-width: 65px; text-align: center; }
+        .btn-pin { background: #f59e0b; }
+        .btn-edit { background: #3b82f6; }
+        .btn-delete { background: #ef4444; }
+        .btn-toggle-info { background: #e2e8f0; color: #475569; font-size: 12px; padding: 6px 12px; border-radius: 4px; }
         .btn-toggle-info:hover { background: #cbd5e1; }
 
-        #linksContainer {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+        /* 分类标题 */
+        .category-section { margin-bottom: 40px; scroll-margin-top: 20px; }
+        .category-title { 
+            font-size: 20px; color: #1e293b; margin-bottom: 15px; 
+            padding-bottom: 8px; border-bottom: 2px solid #3b82f6; display: inline-block;
         }
 
-        .card { 
-            background: white; padding: 20px; border-radius: 10px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            display: flex; flex-direction: column; justify-content: space-between;
-            transition: transform 0.15s, box-shadow 0.15s;
-            cursor: grab;
-            user-select: none;
+        /* 表格样式 (Procurement Dashboard 风格) */
+        table { 
+            width: 100%; border-collapse: collapse; background: white; 
+            border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.06);
         }
-        .card:active { cursor: grabbing; }
-        .card:hover { transform: translateY(-3px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
-        .card.important { border: 2px solid #007bff; background-color: #f8fbff; }
+        th { 
+            background: #1e293b; /* 深色表头 */
+            color: white; 
+            padding: 14px 20px; 
+            text-align: left; 
+            font-size: 14px; 
+            font-weight: 500; 
+        }
+        td { 
+            padding: 14px 20px; 
+            border-bottom: 1px solid #e2e8f0; 
+            vertical-align: middle; 
+            font-size: 14px; 
+        }
         
-        .card.dragging {
-            opacity: 0.4;
-            border: 2px dashed #007bff;
-        }
-        .card.drag-over {
-            border-top: 4px solid #007bff;
-            background-color: #eef5ff;
-        }
+        /* 拖拽行的交互样式 */
+        .drag-row { cursor: grab; user-select: none; }
+        .drag-row:active { cursor: grabbing; }
+        .drag-row:hover { background-color: #f8fafc; }
+        .drag-row.important { background-color: #eff6ff; } /* 置顶的高亮背景 */
+        .drag-row.important:hover { background-color: #e0f2fe; }
         
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-        .sys-title { font-size: 18px; color: #007bff; text-decoration: none; font-weight: bold; line-height: 1.3; }
+        .drag-row.dragging { opacity: 0.5; background-color: #f1f5f9; }
+        .drag-row.drag-over { border-top: 3px solid #3b82f6; }
+
+        /* 表格内的内容样式 */
+        .sys-title { font-size: 15px; color: #2563eb; text-decoration: none; font-weight: 600; display: block; margin-bottom: 4px; }
         .sys-title:hover { text-decoration: underline; }
-        .category-tag { background: #e9ecef; color: #495057; font-size: 11px; padding: 3px 8px; border-radius: 12px; white-space: nowrap; font-weight: bold; }
-        
-        .meta-data { font-size: 12px; color: #6c757d; margin-top: 12px; }
-        
-        .hidden-info { display: none; background: #fff3cd; padding: 10px; border-radius: 6px; font-size: 13px; margin-top: 10px; border: 1px solid #ffeeba; color: #856404; word-break: break-all; }
+        .td-meta { color: #64748b; font-size: 13px; line-height: 1.5; }
+        .td-actions { display: flex; gap: 8px; justify-content: flex-end; }
+        .hidden-info { display: none; background: #fff3cd; padding: 10px; border-radius: 6px; font-size: 13px; margin-top: 8px; border: 1px solid #ffeeba; color: #856404; word-break: break-all; }
 
-        .card-actions { display: flex; gap: 8px; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 1px solid #f1f3f5; }
-
+        /* 弹窗样式 (保持原有结构) */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(3px); align-items: center; justify-content: center; }
-        .modal-content { background-color: white; padding: 25px; border-radius: 10px; width: 90%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; max-height: 90vh; overflow-y: auto; }
-        .modal-content input { width: 100%; box-sizing: border-box; padding: 10px; margin: 8px 0 15px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; }
-        .close-btn { position: absolute; right: 20px; top: 20px; font-size: 24px; color: #6c757d; cursor: pointer; line-height: 1; }
-        .close-btn:hover { color: #dc3545; }
-        .form-label { font-size: 13px; font-weight: bold; color: #495057; }
-        
-        .drag-hint { font-size: 13px; color: #6c757d; margin-bottom: 15px; font-style: italic; }
+        .modal-content { background-color: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 450px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; max-height: 90vh; overflow-y: auto; }
+        .modal-content input { width: 100%; box-sizing: border-box; padding: 12px; margin: 8px 0 20px; border: 1px solid #ced4da; border-radius: 6px; font-size: 14px; }
+        .modal-content input:focus { border-color: #3b82f6; outline: none; }
+        .close-btn { position: absolute; right: 20px; top: 20px; font-size: 24px; color: #94a3b8; cursor: pointer; line-height: 1; }
+        .close-btn:hover { color: #ef4444; }
+        .form-label { font-size: 13px; font-weight: bold; color: #475569; }
+        .drag-hint { font-size: 13px; color: #64748b; margin-bottom: 0; font-style: italic; }
     </style>
 </head>
 <body>
 
-    <h2 style="color: #343a40; margin-bottom: 10px;">🔗 NBT Company System / Link Directory</h2>
-    <div class="drag-hint">Tip: Pinned cards stay at the top instantly. Drag and drop any card to reorder!</div>
-
-    <div class="top-bar">
-        <input type="text" id="searchBox" placeholder="🔍 Search system name or category..." oninput="filterLinks()">
-        <button class="btn-primary" onclick="openModal('addModal')">+ Add New Link</button>
+    <!-- 左侧固定菜单栏 -->
+    <div class="sidebar">
+        <h2>📁 System Directory</h2>
+        <div id="sidebarMenu">
+            <!-- 菜单将根据分类自动生成 -->
+            <p style="color: #64748b; font-size: 13px;">Loading categories...</p>
+        </div>
     </div>
 
-    <div id="linksContainer">
-        <p style="color: #6c757d;">Loading...</p>
+    <!-- 右侧主要内容 -->
+    <div class="main-content">
+        <h2 style="color: #0f172a; margin-top: 0; margin-bottom: 5px;">🔗 NBT Company System Links</h2>
+        <div class="drag-hint">Tip: Pinned rows stay at the top. Drag and drop any row to reorder! Add a new Category to create a group.</div>
+        <br>
+
+        <div class="top-bar">
+            <input type="text" id="searchBox" placeholder="🔍 Search system name or category..." oninput="filterLinks()">
+            <button class="btn-primary" onclick="openModal('addModal')">+ Add New Link</button>
+        </div>
+
+        <!-- 所有的表格数据将塞进这里 -->
+        <div id="linksContainer">
+            <p style="color: #64748b;">Loading data...</p>
+        </div>
     </div>
 
+    <!-- 弹窗：添加链接 -->
     <div id="addModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('addModal')">&times;</span>
-            <h3 style="margin-top: 0; margin-bottom: 20px; color: #007bff;">+ Add New Link</h3>
+            <h3 style="margin-top: 0; margin-bottom: 20px; color: #3b82f6;">+ Add New Link</h3>
             
             <label class="form-label">System Name *</label>
             <input type="text" id="linkName" placeholder="e.g., HR Portal" required>
@@ -94,8 +175,8 @@
             <label class="form-label">URL / Website Link *</label>
             <input type="url" id="linkUrl" placeholder="https://..." required>
             
-            <label class="form-label">Category (Optional)</label>
-            <input type="text" id="linkCategory" placeholder="e.g., Logistics, Accounting, HR">
+            <label class="form-label">Category (Group Name) *</label>
+            <input type="text" id="linkCategory" placeholder="e.g., Logistics, Dashboard, System">
             
             <label class="form-label">Login Info / Remarks (Hidden by default)</label>
             <input type="text" id="loginInfo" placeholder="e.g., [shiuank:123456]">
@@ -107,10 +188,11 @@
         </div>
     </div>
 
+    <!-- 弹窗：编辑链接 -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('editModal')">&times;</span>
-            <h3 style="margin-top: 0; margin-bottom: 20px; color: #ffc107;">Edit Link</h3>
+            <h3 style="margin-top: 0; margin-bottom: 20px; color: #3b82f6;">Edit Link</h3>
             
             <input type="hidden" id="editLinkId">
 
@@ -120,7 +202,7 @@
             <label class="form-label">URL / Website Link *</label>
             <input type="url" id="editLinkUrl" required>
             
-            <label class="form-label">Category (Optional)</label>
+            <label class="form-label">Category (Group Name)</label>
             <input type="text" id="editLinkCategory">
             
             <label class="form-label">Update Login Info (Leave blank if no change)</label>
@@ -131,6 +213,7 @@
     </div>
 
     <script>
+        // -- 核心数据库与逻辑完全保留 --
         const SUPABASE_URL = 'https://yvtujoueyotncbvdlgyf.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_98O37WT0nSZVw2I9128JOg___CX38Dn';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -162,58 +245,106 @@
             renderLinks(allLinks);
         }
 
+        // 修改后的渲染函数：按 Category 分组并生成表格
         function renderLinks(links) {
             const container = document.getElementById('linksContainer');
+            const sidebar = document.getElementById('sidebarMenu');
             container.innerHTML = ''; 
+            sidebar.innerHTML = '';
 
             if (links.length === 0) {
-                container.innerHTML = '<p style="color: #6c757d;">No data available yet.</p>';
+                container.innerHTML = '<p style="color: #64748b;">No data available yet.</p>';
                 return;
             }
 
-            links.forEach((link, index) => {
-                const date = new Date(link.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-                const div = document.createElement('div');
+            // 1. 数据分组 (Grouping)
+            const groupedData = {};
+            links.forEach(link => {
+                const category = link.category ? link.category.trim() : 'Others';
+                if (!groupedData[category]) groupedData[category] = [];
+                groupedData[category].push(link);
+            });
+
+            // 2. 排序分类名，让左侧菜单好看点
+            const sortedCategories = Object.keys(groupedData).sort();
+
+            // 3. 生成左侧导航和右侧表格
+            sortedCategories.forEach(category => {
+                const safeId = "group-" + category.replace(/\s+/g, '-').toLowerCase();
                 
-                const isImportant = link.priority > 0;
-                div.className = isImportant ? 'card important' : 'card';
-                div.setAttribute('draggable', 'true');
-                div.dataset.id = link.id;
+                // 生成左侧导航按钮
+                sidebar.innerHTML += `<a href="#${safeId}" class="sidebar-link">📂 ${category} (${groupedData[category].length})</a>`;
 
-                div.addEventListener('dragstart', handleDragStart);
-                div.addEventListener('dragover', handleDragOver);
-                div.addEventListener('dragleave', handleDragLeave);
-                div.addEventListener('drop', handleDrop);
-                div.addEventListener('dragend', handleDragEnd);
+                // 生成右侧的表格区
+                const section = document.createElement('div');
+                section.className = 'category-section';
+                section.id = safeId;
 
-                const categoryHtml = link.category ? `<span class="category-tag">${link.category}</span>` : '';
-                const loginHtml = `
-                    <button class="btn-toggle-info" onclick="fetchAndShowInfo('${link.id}')">Show Info / Login</button>
-                    <div id="info-${link.id}" class="hidden-info"></div>
+                // 表头与表结构
+                let tableHTML = `
+                    <h3 class="category-title">${category}</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 30%;">System Name</th>
+                                <th style="width: 20%;">Added By & Date</th>
+                                <th style="width: 25%;">Details</th>
+                                <th style="width: 25%; text-align: right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                 `;
+                section.innerHTML = tableHTML;
+                const tbody = document.createElement('tbody');
 
-                div.innerHTML = `
-                    <div>
-                        <div class="card-header">
-                            <a href="${link.url}" target="_blank" class="sys-title" title="${link.url}" onclick="event.stopPropagation()">${link.name}</a>
-                            ${categoryHtml}
-                        </div>
-                        <div class="meta-data">${link.created_by} | ${date}</div>
-                        ${loginHtml}
-                    </div>
+                // 塞入每一行 (Row) 的数据
+                groupedData[category].forEach(link => {
+                    const date = new Date(link.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    const isImportant = link.priority > 0;
+                    
+                    const tr = document.createElement('tr');
+                    tr.className = isImportant ? 'drag-row important' : 'drag-row';
+                    tr.setAttribute('draggable', 'true');
+                    tr.dataset.id = link.id;
 
-                    <div class="card-actions" onclick="event.stopPropagation()">
-                        <button class="btn-pin" style="background: ${link.priority > 0 ? '#6c757d' : '#ffc107'};" onclick="toggleImportant('${link.id}', ${link.priority})">
-                            ${link.priority > 0 ? 'Unpin' : 'Pin'}
-                        </button>
-                        <button class="btn-edit" onclick="openEditForm('${link.id}')">Edit</button>
-                        <button class="btn-delete" onclick="deleteLink('${link.id}')">Delete</button>
-                    </div>
-                `;
-                container.appendChild(div);
+                    // 挂载拖拽事件到 tr 标签上
+                    tr.addEventListener('dragstart', handleDragStart);
+                    tr.addEventListener('dragover', handleDragOver);
+                    tr.addEventListener('dragleave', handleDragLeave);
+                    tr.addEventListener('drop', handleDrop);
+                    tr.addEventListener('dragend', handleDragEnd);
+
+                    tr.innerHTML = `
+                        <td>
+                            <a href="${link.url}" target="_blank" class="sys-title" title="${link.url}">${link.name}</a>
+                            ${isImportant ? '<span style="font-size:11px; color:#f59e0b; font-weight:bold;">📌 Pinned</span>' : ''}
+                        </td>
+                        <td class="td-meta">
+                            <strong>${link.created_by}</strong><br>${date}
+                        </td>
+                        <td>
+                            <button class="btn-toggle-info" onclick="fetchAndShowInfo('${link.id}')">Show Info / Login</button>
+                            <div id="info-${link.id}" class="hidden-info"></div>
+                        </td>
+                        <td class="td-actions">
+                            <button class="btn-action btn-pin" style="background: ${isImportant ? '#64748b' : '#f59e0b'};" onclick="toggleImportant('${link.id}', ${link.priority})">
+                                ${isImportant ? 'Unpin' : 'Pin'}
+                            </button>
+                            <button class="btn-action btn-edit" onclick="openEditForm('${link.id}')">Edit</button>
+                            <button class="btn-action btn-delete" onclick="deleteLink('${link.id}')">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                // 将tbody组合进table
+                const table = section.querySelector('table');
+                table.appendChild(tbody);
+                container.appendChild(section);
             });
         }
 
+        // 修改拖拽交互 (改为匹配 .drag-row)
         function handleDragStart(e) {
             draggedCardId = this.dataset.id;
             this.classList.add('dragging');
@@ -223,24 +354,24 @@
         function handleDragOver(e) {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
-            const card = e.target.closest('.card');
-            if (card && card.dataset.id !== draggedCardId) {
-                card.classList.add('drag-over');
+            const row = e.target.closest('.drag-row');
+            if (row && row.dataset.id !== draggedCardId) {
+                row.classList.add('drag-over');
             }
         }
 
         function handleDragLeave(e) {
-            const card = e.target.closest('.card');
-            if (card) card.classList.remove('drag-over');
+            const row = e.target.closest('.drag-row');
+            if (row) row.classList.remove('drag-over');
         }
 
         async function handleDrop(e) {
             e.preventDefault();
-            const targetCard = e.target.closest('.card');
-            if (!targetCard) return;
-            targetCard.classList.remove('drag-over');
+            const targetRow = e.target.closest('.drag-row');
+            if (!targetRow) return;
+            targetRow.classList.remove('drag-over');
 
-            const targetCardId = targetCard.dataset.id;
+            const targetCardId = targetRow.dataset.id;
             if (draggedCardId === targetCardId) return;
 
             const draggedIndex = allLinks.findIndex(l => l.id === draggedCardId);
@@ -256,8 +387,8 @@
         }
 
         function handleDragEnd() {
-            document.querySelectorAll('.card').forEach(card => {
-                card.classList.remove('dragging', 'drag-over');
+            document.querySelectorAll('.drag-row').forEach(row => {
+                row.classList.remove('dragging', 'drag-over');
             });
         }
 
@@ -280,6 +411,7 @@
             renderLinks(filtered);
         }
 
+        // -- 以下所有增删改、Pin、密码逻辑一字未改，保持原样 --
         async function fetchAndShowInfo(linkId) {
             const infoDiv = document.getElementById(`info-${linkId}`);
             if (infoDiv.style.display === 'block') {
@@ -407,11 +539,9 @@
             fetchLinks();
         }
 
-        // 修改后的 Pin / Unpin 函数：实现点击瞬间立刻秒飞置顶
         async function toggleImportant(id, currentPriority) {
             const newPriority = currentPriority > 0 ? 0 : 10;
             
-            // 1. 立即在本地更新该卡片的 priority 并重新排序渲染，实现“秒飞到最上面”
             const item = allLinks.find(l => l.id === id);
             if (item) {
                 item.priority = newPriority;
@@ -422,11 +552,10 @@
                 renderLinks(allLinks);
             }
 
-            // 2. 在后台异步同步到数据库
             const { error } = await supabaseClient.from('company_links').update({ priority: newPriority }).eq('id', id);
             if (error) {
                 alert("Failed to update: " + error.message);
-                fetchLinks(); // 如果出错则从数据库重新拉取
+                fetchLinks(); 
             }
         }
 
