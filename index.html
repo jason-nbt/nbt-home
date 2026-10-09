@@ -148,7 +148,7 @@
 
         /* 分类标题与表格区域 */
         .category-section { margin-bottom: 40px; scroll-margin-top: 20px; border-radius: 8px; transition: background 0.2s; }
-        .category-section.drag-over-section { background: #e0f2fe; padding: 10px; border: 2px dashed #2563eb; } /* 拖拽悬停时的提示框 */
+        .category-section.drag-over-section { background: #e0f2fe; padding: 10px; border: 2px dashed #2563eb; }
 
         .category-title-wrap {
             display: flex;
@@ -235,9 +235,9 @@
     </div>
 
     <!-- 右侧主要内容 -->
-    <div class="main-content">
+    <div class="main-content" id="mainContentArea">
         <h2 style="color: #0f172a; margin-top: 0; margin-bottom: 5px;">Company Links Directory</h2>
-        <div class="drag-hint">Tip: New links start in "Unassigned". Drag any row into any group table below to move it there instantly!</div>
+        <div class="drag-hint">Tip: Drag any row near the top/bottom edge of the screen while dragging to auto-scroll!</div>
         <br>
 
         <div class="top-bar">
@@ -387,7 +387,6 @@
                     </div>
                 `;
 
-                // 每个分类区块绑定拖拽事件（支持空表格直接拖入）
                 const section = document.createElement('div');
                 section.className = 'category-section';
                 section.id = safeId;
@@ -496,20 +495,37 @@
             renderLinks(allLinks);
         }
 
-        // 拖拽相关事件处理
+        // 拖拽相关事件处理（含边缘自动滚动 Auto-scroll）
         function handleDragStart(e) {
             draggedCardId = this.dataset.id;
             this.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
         }
 
-        function handleDragOver(e) {
+        const mainContentArea = document.getElementById('mainContentArea');
+        mainContentArea.addEventListener('dragover', (e) => {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
+
             const section = e.target.closest('.category-section');
             if (section) {
                 section.classList.add('drag-over-section');
             }
+
+            // 边缘自动滚动逻辑
+            const rect = mainContentArea.getBoundingClientRect();
+            const mouseY = e.clientY;
+            const threshold = 80; // 距离上下边缘80px时触发滚动
+
+            if (mouseY - rect.top < threshold) {
+                mainContentArea.scrollTop -= 15; // 向上滚动
+            } else if (rect.bottom - mouseY < threshold) {
+                mainContentArea.scrollTop += 15; // 向下滚动
+            }
+        });
+
+        function handleDragOver(e) {
+            e.preventDefault();
         }
 
         function handleDragLeave(e) {
@@ -529,7 +545,6 @@
             const draggedIndex = allLinks.findIndex(l => l.id === draggedCardId);
             if (draggedIndex < 0) return;
 
-            // 更新分组映射
             if (targetGroup === 'Unassigned') {
                 delete linkGroupMap[draggedCardId];
             } else {
@@ -537,7 +552,6 @@
             }
             localStorage.setItem('nbt_link_group_map', JSON.stringify(linkGroupMap));
 
-            // 如果拖到了具体某一行上面，可以进行精细排序，否则放到该组末尾
             const targetRow = e.target.closest('.drag-row');
             const [movedItem] = allLinks.splice(draggedIndex, 1);
             
@@ -707,7 +721,6 @@
                 }
             }
 
-            closeModal('editManager'); // safe fallback
             closeModal('editModal');
             fetchLinks();
         }
