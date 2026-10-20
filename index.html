@@ -6,7 +6,7 @@
     <link rel="icon" type="image/png" href="NBT.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* 深蓝色系与全局基础重置 */
+        /* Dark blue theme and global base reset */
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             margin: 0; 
@@ -17,7 +17,7 @@
             overflow: hidden;
         }
 
-        /* 左侧固定的侧边栏 (深蓝色) */
+        /* Fixed left sidebar (Dark blue) */
         .sidebar {
             width: 270px;
             background: #0f172a; 
@@ -38,7 +38,7 @@
         .sidebar h2 { font-size: 17px; margin-top: 0; margin-bottom: 25px; color: #ffffff; display: flex; align-items: center; gap: 8px; }
         .categories-title { font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 1px; margin-bottom: 12px; font-weight: bold; }
         
-        /* 侧边栏分组行样式 */
+        /* Sidebar group item styles */
         .sidebar-group-item {
             display: flex;
             align-items: center;
@@ -74,7 +74,7 @@
         }
         .sidebar-group-item:hover .badge { background: #334155; color: white; }
         
-        /* 删除组按钮 */
+        /* Delete group button */
         .btn-delete-group {
             background: transparent;
             border: none;
@@ -90,7 +90,7 @@
             background: rgba(239, 68, 68, 0.1);
         }
 
-        /* 左侧底部的 Add Group 按钮样式 */
+        /* Bottom left Add Group button style */
         .sidebar-bottom {
             padding-top: 15px;
             border-top: 1px solid #1e293b;
@@ -117,7 +117,7 @@
             color: #ffffff;
         }
 
-        /* 右侧主要内容区 */
+        /* Main content area on the right */
         .main-content {
             flex-grow: 1;
             margin-left: 270px; 
@@ -127,7 +127,7 @@
             box-sizing: border-box;
         }
 
-        /* 顶部操作栏 */
+        /* Top action bar */
         .top-bar { 
             display: flex; gap: 15px; margin-bottom: 30px; align-items: center; 
             background: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 1px 5px rgba(0,0,0,0.05);
@@ -140,13 +140,13 @@
         .btn-primary:hover { background: #1d4ed8; }
         .btn-success { background: #10b981; color: white; width: 100%; padding: 12px; margin-top: 10px; font-size: 16px; }
         
-        /* 表格操作按钮 */
+        /* Table action buttons */
         .btn-action { background: transparent; border: none; cursor: pointer; font-size: 16px; padding: 6px; border-radius: 4px; transition: background 0.2s; }
         .btn-action:hover { background: #e2e8f0; }
         .btn-toggle-info { background: #f8fafc; border: 1px solid #cbd5e1; color: #475569; font-size: 12px; padding: 5px 10px; border-radius: 4px; }
         .btn-toggle-info:hover { background: #f1f5f9; }
 
-        /* 分类标题与表格区域 (使用内阴影高亮，避免改变布局引起抖动) */
+        /* Category title and table area */
         .category-section { margin-bottom: 40px; scroll-margin-top: 20px; border-radius: 8px; transition: background 0.2s; }
         .category-section.drag-over-section { background: #e0f2fe; box-shadow: inset 0 0 0 2px #2563eb; }
 
@@ -166,7 +166,7 @@
             font-size: 18px; color: #0f172a; font-weight: bold; margin: 0;
         }
 
-        /* 表格样式 */
+        /* Table styles */
         table { 
             width: 100%; border-collapse: collapse; background: white; 
             border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.04);
@@ -186,7 +186,7 @@
             font-size: 14px; 
         }
         
-        /* 拖拽行的交互样式 */
+        /* Drag and drop row interactive styles */
         .drag-row { cursor: grab; user-select: none; }
         .drag-row:active { cursor: grabbing; }
         .drag-row:hover { background-color: #f8fafc; }
@@ -195,7 +195,7 @@
         
         .drag-row.dragging { opacity: 0.5; background-color: #f1f5f9; }
 
-        /* 表格内的内容样式 */
+        /* Content styles within the table */
         .drag-handle { color: #94a3b8; margin-right: 10px; font-weight: bold; }
         .sys-title { font-size: 14px; color: #1e293b; text-decoration: none; font-weight: 600; }
         .sys-title:hover { color: #2563eb; text-decoration: underline; }
@@ -203,11 +203,11 @@
         .td-actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
         .hidden-info { display: none; background: #fff3cd; padding: 10px; border-radius: 6px; font-size: 13px; margin-top: 8px; border: 1px solid #ffeeba; color: #856404; word-break: break-all; }
 
-        /* 弹窗样式 */
+        /* Modal styles (Updated to include select dropdowns) */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(3px); align-items: center; justify-content: center; }
         .modal-content { background-color: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 420px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; }
-        .modal-content input { width: 100%; box-sizing: border-box; padding: 12px; margin: 8px 0 20px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; background: white; }
-        .modal-content input:focus { border-color: #2563eb; outline: none; }
+        .modal-content input, .modal-content select { width: 100%; box-sizing: border-box; padding: 12px; margin: 8px 0 20px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; background: white; }
+        .modal-content input:focus, .modal-content select:focus { border-color: #2563eb; outline: none; }
         .close-btn { position: absolute; right: 20px; top: 20px; font-size: 24px; color: #94a3b8; cursor: pointer; line-height: 1; }
         .close-btn:hover { color: #ef4444; }
         .form-label { font-size: 13px; font-weight: bold; color: #475569; }
@@ -216,13 +216,12 @@
 </head>
 <body>
 
-    <!-- 左侧固定菜单栏 (深蓝色 Group 表格，保持固定不动) -->
+    <!-- Fixed left menu bar (Dark blue Group table, remains fixed) -->
     <div class="sidebar">
         <div class="sidebar-top">
             <h2>🔗 NBT-Link Directory</h2>
             <div class="categories-title">Groups</div>
             <div id="sidebarMenu">
-                <!-- 菜单将根据分类自动生成 -->
                 <p style="color: #64748b; font-size: 13px;">Loading...</p>
             </div>
         </div>
@@ -234,7 +233,7 @@
         </div>
     </div>
 
-    <!-- 右侧主要内容 (拖拽时将鼠标移到顶部或底部边缘即可自动上下滚动) -->
+    <!-- Main content on the right -->
     <div class="main-content" id="mainContentArea">
         <h2 style="color: #0f172a; margin-top: 0; margin-bottom: 5px;">NBT Links Directory</h2>
         <div class="drag-hint">Tip: Drag any row near the top or bottom edge of the screen while dragging to auto-scroll smoothly!</div>
@@ -250,7 +249,7 @@
         </div>
     </div>
 
-    <!-- 弹窗：添加分组 (Add Group) -->
+    <!-- Modal: Add Group -->
     <div id="groupModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('groupModal')">&times;</span>
@@ -263,7 +262,7 @@
         </div>
     </div>
 
-    <!-- 弹窗：添加链接 -->
+    <!-- Modal: Add Link -->
     <div id="addModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('addModal')">&times;</span>
@@ -288,7 +287,7 @@
         </div>
     </div>
 
-    <!-- 弹窗：编辑链接 -->
+    <!-- Modal: Edit Link -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('editModal')">&times;</span>
@@ -301,6 +300,10 @@
             
             <label class="form-label">URL / Website Link *</label>
             <input type="url" id="editLinkUrl" required>
+            
+            <!-- 新增的 Group 下拉菜单 -->
+            <label class="form-label">Group / Category *</label>
+            <select id="editLinkGroup"></select>
             
             <label class="form-label">Department / Tag</label>
             <input type="text" id="editLinkCategory">
@@ -319,7 +322,6 @@
 
         let allLinks = [];
         let customGroups = JSON.parse(localStorage.getItem('nbt_custom_groups')) || ['Calculators', 'Dashboards', 'Core Systems'];
-        let linkGroupMap = JSON.parse(localStorage.getItem('nbt_link_group_map')) || {};
 
         let draggedCardId = null;
         let scrollInterval = null;
@@ -333,40 +335,97 @@
             if (event.target == document.getElementById('groupModal')) closeModal('groupModal');
         }
 
+        // ---------- helpers ----------
+        const sameId = (a, b) => String(a) === String(b);
+        let isSaving = false;       // true while we are writing order/pin/group changes
+        let fetchSeq = 0;           // ignore stale fetch responses
+        let refreshTimer = null;
+
+        function scheduleRefresh() {
+            // Debounced: many DB writes => many realtime events => ONE refetch
+            clearTimeout(refreshTimer);
+            refreshTimer = setTimeout(() => { if (!isSaving) fetchLinks(); }, 500);
+        }
+
         async function fetchLinks() {
+            const mySeq = ++fetchSeq;
             const { data, error } = await supabaseClient
                 .from('company_links')
-                .select('id, name, url, category, created_by, created_at, priority, sort_order') 
+                .select('id, name, url, category, created_by, created_at, priority, sort_order,group_name') 
                 .order('priority', { ascending: false })
                 .order('sort_order', { ascending: true, nullsFirst: false })
                 .order('name', { ascending: true });
 
+            if (mySeq !== fetchSeq) return; // a newer fetch / local change superseded this one
             if (error) {
                 console.error("Fetch error:", error);
                 document.getElementById('linksContainer').innerHTML = `<p style="color:red;">Error loading data: ${error.message}</p>`;
                 return;
             }
             allLinks = data;
-            renderLinks(allLinks);
+            filterLinks();
         }
 
-        // 渲染页面与左侧导航
+        // Single source of truth for order:
+        //  1) pinned (priority > 0) always first
+        //  2) otherwise keep the CURRENT array order (stable sort)
+        // then write sort_order = 1..N plus any extra field changes in parallel.
+        async function persistOrder(extraChanges = {}) {
+            fetchSeq++;            // invalidate any in-flight fetch that would overwrite local state
+            isSaving = true;
+            allLinks.sort((a, b) => (b.priority || 0) - (a.priority || 0)); // stable
+            const jobs = [];
+            allLinks.forEach((link, i) => {
+                const changes = Object.assign({}, extraChanges[link.id]);
+                if (link.sort_order !== i + 1) {
+                    link.sort_order = i + 1;
+                    changes.sort_order = i + 1;
+                }
+                if (Object.keys(changes).length) {
+                    jobs.push(supabaseClient.from('company_links').update(changes).eq('id', link.id));
+                }
+            });
+            filterLinks(); // re-render immediately (keeps search filter)
+            try {
+                const results = await Promise.all(jobs);
+                const failed = results.find(r => r.error);
+                if (failed) {
+                    console.error("Failed to save order:", failed.error);
+                    alert("Failed to save: " + failed.error.message);
+                }
+            } finally {
+                isSaving = false;
+            }
+            fetchLinks(); // reconcile with DB once, after all writes are done
+        }
+
+        // Render page and left navigation
         function renderLinks(links) {
             const container = document.getElementById('linksContainer');
             const sidebar = document.getElementById('sidebarMenu');
             container.innerHTML = ''; 
             sidebar.innerHTML = '';
 
+            // Register any group found in the DB (e.g. created on another PC) BEFORE bucketing
+            let groupsChanged = false;
+            allLinks.forEach(l => {
+                const g = l.group_name;
+                if (g && g !== 'Unassigned' && !customGroups.includes(g)) {
+                    customGroups.push(g);
+                    groupsChanged = true;
+                }
+            });
+            if (groupsChanged) localStorage.setItem('nbt_custom_groups', JSON.stringify(customGroups));
+
             const groupMap = {};
             customGroups.forEach(g => { groupMap[g] = []; });
             groupMap['Unassigned'] = [];
 
             links.forEach(link => {
-                const assignedGroup = linkGroupMap[link.id];
-                const groupName = (assignedGroup && groupMap[assignedGroup]) ? assignedGroup : 'Unassigned';
+                const g = link.group_name;
+                const groupName = (g && groupMap[g] !== undefined) ? g : 'Unassigned';
                 groupMap[groupName].push(link);
             });
-
             const groupKeys = ['Unassigned', ...customGroups.filter(g => g !== 'Unassigned')];
 
             groupKeys.forEach(groupName => {
@@ -375,7 +434,7 @@
 
                 let deleteGroupBtn = '';
                 if (groupName !== 'Unassigned') {
-                    deleteGroupBtn = `<button class="btn-delete-group" onclick="deleteGroup(event, '${groupName}')" title="Delete Group">🗑️</button>`;
+                    deleteGroupBtn = `<button class="btn-delete-group" onclick="deleteGroup(event, ${JSON.stringify(groupName).replace(/"/g, '&quot;')})" title="Delete Group">🗑️</button>`;
                 }
 
                 sidebar.innerHTML += `
@@ -446,8 +505,8 @@
                                 <div id="info-${link.id}" class="hidden-info"></div>
                             </td>
                             <td class="td-actions">
-                                <button class="btn-action" title="${isImportant ? 'Unpin' : 'Pin'}" onclick="toggleImportant('${link.id}', ${link.priority})">
-                                    ${isImportant ? '📌' : '📍'}
+                                <button class="btn-action" title="${isImportant ? 'Unpin' : 'Pin'}" onclick="toggleImportant('${link.id}')">
+                                    ${isImportant ? '📌' : '🔘'}
                                 </button>
                                 <button class="btn-action" title="Edit" onclick="openEditForm('${link.id}')">✏️</button>
                                 <button class="btn-action" title="Delete" onclick="deleteLink('${link.id}')">🗑️</button>
@@ -461,7 +520,7 @@
             });
         }
 
-        // 新增分组
+        // Add new group
         function addGroup() {
             const groupName = document.getElementById('newGroupName').value.trim();
             if (!groupName) {
@@ -477,8 +536,8 @@
             renderLinks(allLinks);
         }
 
-        // 删除分组
-        function deleteGroup(event, groupName) {
+        // Delete group (Updated to sync with Supabase cloud)
+        async function deleteGroup(event, groupName) {
             event.stopPropagation();
             if (!confirm(`Are you sure you want to delete group "${groupName}"? Links inside this group will be moved back to Unassigned.`)) {
                 return;
@@ -487,17 +546,27 @@
             customGroups = customGroups.filter(g => g !== groupName);
             localStorage.setItem('nbt_custom_groups', JSON.stringify(customGroups));
 
-            for (let id in linkGroupMap) {
-                if (linkGroupMap[id] === groupName) {
-                    delete linkGroupMap[id];
+            // Move local links to Unassigned
+            allLinks.forEach(link => {
+                if (link.group_name === groupName) {
+                    link.group_name = null;
                 }
+            });
+
+            // Sync with Supabase cloud: Set group_name to null for all links in this group
+            const { error } = await supabaseClient
+                .from('company_links')
+                .update({ group_name: null })
+                .eq('group_name', groupName);
+                
+            if (error) {
+                console.error("Failed to sync group deletion with database:", error);
             }
-            localStorage.setItem('nbt_link_group_map', JSON.stringify(linkGroupMap));
 
             renderLinks(allLinks);
         }
 
-        // 拖拽相关事件处理（含边缘平滑自动滚动 Auto-scroll）
+        // Drag and drop event handling
         function handleDragStart(e) {
             draggedCardId = this.dataset.id;
             this.classList.add('dragging');
@@ -525,39 +594,23 @@
                 section.classList.add('drag-over-section');
             }
 
-            // 边缘自动滚动逻辑
             const rect = mainContentArea.getBoundingClientRect();
             const mouseY = e.clientY;
-            const threshold = 90; // 距离上下边缘90px时触发滚动
+            const threshold = 90; 
 
             if (mouseY - rect.top < threshold) {
-                // 向上滚动
-                if (!scrollInterval) {
-                    scrollInterval = setInterval(() => {
-                        mainContentArea.scrollTop -= 20;
-                    }, 20);
-                }
+                if (!scrollInterval) scrollInterval = setInterval(() => { mainContentArea.scrollTop -= 20; }, 20);
             } else if (rect.bottom - mouseY < threshold) {
-                // 向下滚动
-                if (!scrollInterval) {
-                    scrollInterval = setInterval(() => {
-                        mainContentArea.scrollTop += 20;
-                    }, 20);
-                }
+                if (!scrollInterval) scrollInterval = setInterval(() => { mainContentArea.scrollTop += 20; }, 20);
             } else {
                 clearScrollInterval();
             }
         });
 
-        function handleDragOver(e) {
-            e.preventDefault();
-        }
-
+        function handleDragOver(e) { e.preventDefault(); }
         function handleDragLeave(e) {
             const section = e.target.closest('.category-section');
-            if (section) {
-                section.classList.remove('drag-over-section');
-            }
+            if (section) section.classList.remove('drag-over-section');
         }
 
         async function handleDrop(e) {
@@ -568,53 +621,34 @@
             section.classList.remove('drag-over-section');
 
             const targetGroup = section.dataset.groupName;
-            const draggedIndex = allLinks.findIndex(l => l.id === draggedCardId);
+            const newGroupName = targetGroup === 'Unassigned' ? null : targetGroup;
+            const draggedIndex = allLinks.findIndex(l => sameId(l.id, draggedCardId));
             if (draggedIndex < 0) return;
 
-            if (targetGroup === 'Unassigned') {
-                delete linkGroupMap[draggedCardId];
-            } else {
-                linkGroupMap[draggedCardId] = targetGroup;
+            const moved = allLinks[draggedIndex];
+            const extra = {};
+            if ((moved.group_name || null) !== newGroupName) {
+                moved.group_name = newGroupName;
+                extra[moved.id] = { group_name: newGroupName };
             }
-            localStorage.setItem('nbt_link_group_map', JSON.stringify(linkGroupMap));
 
+            allLinks.splice(draggedIndex, 1);
             const targetRow = e.target.closest('.drag-row');
-            const [movedItem] = allLinks.splice(draggedIndex, 1);
-            
-            if (targetRow && targetRow.dataset.id !== draggedCardId) {
-                const targetIndex = allLinks.findIndex(l => l.id === targetRow.dataset.id);
-                if (targetIndex >= 0) {
-                    allLinks.splice(targetIndex, 0, movedItem);
-                } else {
-                    allLinks.push(movedItem);
-                }
-            } else {
-                allLinks.push(movedItem);
+            let targetIndex = -1;
+            if (targetRow && !sameId(targetRow.dataset.id, moved.id)) {
+                targetIndex = allLinks.findIndex(l => sameId(l.id, targetRow.dataset.id));
             }
+            if (targetIndex >= 0) allLinks.splice(targetIndex, 0, moved); // drop ON a row => insert before it
+            else allLinks.push(moved);                                    // drop on empty area => end of group
 
-            renderLinks(allLinks);
-            await saveNewOrderToDatabase();
+            await persistOrder(extra); // pinned stay on top, order + group saved together
         }
 
         function handleDragEnd() {
             clearScrollInterval();
             draggedCardId = null;
-            document.querySelectorAll('.drag-row').forEach(row => {
-                row.classList.remove('dragging');
-            });
-            document.querySelectorAll('.category-section').forEach(sec => {
-                sec.classList.remove('drag-over-section');
-            });
-        }
-
-        async function saveNewOrderToDatabase() {
-            for (let i = 0; i < allLinks.length; i++) {
-                const linkId = allLinks[i].id;
-                await supabaseClient
-                    .from('company_links')
-                    .update({ sort_order: i + 1 })
-                    .eq('id', linkId);
-            }
+            document.querySelectorAll('.drag-row').forEach(row => row.classList.remove('dragging'));
+            document.querySelectorAll('.category-section').forEach(sec => sec.classList.remove('drag-over-section'));
         }
 
         function filterLinks() {
@@ -633,25 +667,23 @@
                 return;
             }
 
-            const pass = prompt("Enter Password Please");
-            if (pass !== "ilovenbt") { 
-                alert("Password Incorrect!");
-                return;
-            }
+            const pass = prompt("Enter Password Please:");
+            if (!pass) return; 
 
             infoDiv.style.display = 'block';
-            infoDiv.innerHTML = '<span style="color:#6c757d;">Fetching data...</span>';
+            infoDiv.innerHTML = '<span style="color:#6c757d;">Verifying...</span>';
 
-            const { data, error } = await supabaseClient
-                .from('link_secrets')
-                .select('login_info')
-                .eq('link_id', linkId)
-                .single();
+            const { data, error } = await supabaseClient.rpc('verify_and_get_secret', { 
+                link_id_param: linkId, 
+                provided_pass: pass 
+            });
 
-            if (error || !data) {
-                infoDiv.innerHTML = 'No login info found or fetch failed.';
+            if (error) {
+                infoDiv.innerHTML = '<span style="color:red;">Password Incorrect!</span>';
+            } else if (!data) {
+                infoDiv.innerHTML = '<span style="color:#856404;">No login info found.</span>';
             } else {
-                infoDiv.innerHTML = data.login_info;
+                infoDiv.innerHTML = data;
             }
         }
 
@@ -662,18 +694,11 @@
             const loginInfo = document.getElementById('loginInfo').value.trim();
             const user = document.getElementById('userName').value.trim();
             
-            const newSortOrder = 1;
+            const newSortOrder = allLinks.length ? Math.min(...allLinks.map(l => l.sort_order || 0)) - 1 : 1; // top of its tier
 
             if (!name || !url || !user) {
                 alert("Please fill in System Name, URL and Your Name!");
                 return;
-            }
-
-            for (let link of allLinks) {
-                await supabaseClient
-                    .from('company_links')
-                    .update({ sort_order: (link.sort_order || 0) + 1 })
-                    .eq('id', link.id);
             }
 
             const { data: linkData, error: linkError } = await supabaseClient
@@ -710,6 +735,14 @@
             document.getElementById('editLinkCategory').value = link.category || '';
             document.getElementById('editLoginInfo').value = '';
 
+            // Populate the Dropdown with available groups
+            const groupSelect = document.getElementById('editLinkGroup');
+            groupSelect.innerHTML = `<option value="Unassigned">📁 Unassigned</option>`;
+            customGroups.forEach(g => {
+                groupSelect.innerHTML += `<option value="${g}">📁 ${g}</option>`;
+            });
+            groupSelect.value = link.group_name || 'Unassigned';
+
             openModal('editModal');
         }
 
@@ -718,6 +751,11 @@
             const name = document.getElementById('editLinkName').value.trim();
             const url = document.getElementById('editLinkUrl').value.trim();
             const category = document.getElementById('editLinkCategory').value.trim();
+            
+            // Get selected group from dropdown
+            const selectedGroup = document.getElementById('editLinkGroup').value;
+            const newGroupName = selectedGroup === 'Unassigned' ? null : selectedGroup;
+            
             const newLoginInfo = document.getElementById('editLoginInfo').value.trim();
 
             if (!name || !url) {
@@ -727,7 +765,7 @@
 
             const { error: linkError } = await supabaseClient
                 .from('company_links')
-                .update({ name: name, url: url, category: category })
+                .update({ name: name, url: url, category: category, group_name: newGroupName })
                 .eq('id', id);
 
             if (linkError) {
@@ -753,38 +791,44 @@
             fetchLinks();
         }
 
-        async function toggleImportant(id, currentPriority) {
-            const newPriority = currentPriority > 0 ? 0 : 10;
-            
-            const item = allLinks.find(l => l.id === id);
-            if (item) {
-                item.priority = newPriority;
-                allLinks.sort((a, b) => {
-                    if (b.priority !== a.priority) return b.priority - a.priority;
-                    return (a.sort_order || 0) - (b.sort_order || 0);
-                });
-                renderLinks(allLinks);
-            }
+        async function toggleImportant(id) {
+            const item = allLinks.find(l => sameId(l.id, id));
+            if (!item) return;
+            item.priority = (item.priority || 0) > 0 ? 0 : 10;
 
-            const { error } = await supabaseClient.from('company_links').update({ priority: newPriority }).eq('id', id);
+            // Move to the very front: first among pinned (if pinned) / first among unpinned (if unpinned).
+            // persistOrder's stable pinned-first sort does the rest, and saves sort_order for everyone.
+            allLinks.splice(allLinks.indexOf(item), 1);
+            allLinks.unshift(item);
+
+            await persistOrder({ [item.id]: { priority: item.priority } });
+        }
+
+           async function deleteLink(id) {
+                const pass = prompt("Delete requires admin password:");
+                if (!pass) return;
+    
+                if (!confirm("Are you sure you want to delete this link?")) return;
+    
+                const { error } = await supabaseClient.rpc('delete_link_securely', { 
+                    link_id_param: id, 
+                    provided_pass: pass 
+                });
+
             if (error) {
-                alert("Failed to update: " + error.message);
+                alert("Action Cancelled / Password Incorrect.");
+            } else {
                 fetchLinks(); 
             }
         }
-
-        async function deleteLink(id) {
-            const pass = prompt("Delete requires admin password:");
-            if (pass !== "ilovenbt") { 
-                alert("Action Cancelled / Password Incorrect.");
-                return;
-            }
-            if (!confirm("Are you sure you want to delete this link?")) return;
-            const { error } = await supabaseClient.from('company_links').delete().eq('id', id);
-            if (error) alert("Failed to delete: " + error.message);
-            else fetchLinks(); 
-        }
-
+        
+        supabaseClient
+            .channel('public:company_links')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'company_links' }, (payload) => {
+                scheduleRefresh();
+            })
+            .subscribe();
+            
         window.onload = fetchLinks;
     </script>
 </body>
