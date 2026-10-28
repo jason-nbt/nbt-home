@@ -1,26 +1,26 @@
 <!DOCTYPE html>
-<html lang="en" style="scroll-behavior: smooth;">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>NBT-Home Links</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>[TEST] NBT-Home Links</title>
     <link rel="icon" type="image/png" href="NBT.png">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Dark blue theme and global base reset */
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            margin: 0; 
-            padding: 0; 
-            background: #f1f5f9; 
-            display: flex; 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f1f5f9;
+            display: flex;
             height: 100vh;
             overflow: hidden;
         }
 
-        /* Fixed left sidebar (Dark blue) */
+        /* ---------- Sidebar ---------- */
         .sidebar {
             width: 270px;
-            background: #0f172a; 
+            background: #0f172a;
             color: #f8fafc;
             height: 100vh;
             padding: 25px 20px;
@@ -37,186 +37,81 @@
         .sidebar-top { overflow-y: auto; flex-grow: 1; padding-right: 2px; }
         .sidebar h2 { font-size: 17px; margin-top: 0; margin-bottom: 25px; color: #ffffff; display: flex; align-items: center; gap: 8px; }
         .categories-title { font-size: 11px; text-transform: uppercase; color: #64748b; letter-spacing: 1px; margin-bottom: 12px; font-weight: bold; }
-        
-        /* Sidebar group item styles */
-        .sidebar-group-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 6px;
-            border-radius: 6px;
-            transition: background 0.2s;
-        }
-        .sidebar-group-item:hover {
-            background: #1e293b;
-        }
-        .sidebar-link {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #94a3b8;
-            text-decoration: none;
-            padding: 10px 12px;
-            font-size: 14px;
-            flex-grow: 1;
-            overflow: hidden;
-        }
-        .sidebar-group-item:hover .sidebar-link {
-            color: #ffffff;
-        }
-        .sidebar-link .badge {
-            background: #1e293b;
-            color: #cbd5e1;
-            font-size: 12px;
-            padding: 2px 8px;
-            border-radius: 10px;
-            margin-left: 8px;
-        }
+
+        .sidebar-group-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; border-radius: 6px; transition: background 0.2s; }
+        .sidebar-group-item:hover { background: #1e293b; }
+        .sidebar-link { display: flex; justify-content: space-between; align-items: center; color: #94a3b8; text-decoration: none; padding: 10px 12px; font-size: 14px; flex-grow: 1; overflow: hidden; }
+        .sidebar-link span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .sidebar-group-item:hover .sidebar-link { color: #ffffff; }
+        .sidebar-link .badge { background: #1e293b; color: #cbd5e1; font-size: 12px; padding: 2px 8px; border-radius: 10px; margin-left: 8px; }
         .sidebar-group-item:hover .badge { background: #334155; color: white; }
-        
-        /* Delete group button */
-        .btn-delete-group {
-            background: transparent;
-            border: none;
-            color: #64748b;
-            cursor: pointer;
-            font-size: 13px;
-            padding: 8px 10px;
-            border-radius: 4px;
-            transition: all 0.2s;
-        }
-        .btn-delete-group:hover {
-            color: #ef4444;
-            background: rgba(239, 68, 68, 0.1);
-        }
 
-        /* Bottom left Add Group button style */
-        .sidebar-bottom {
-            padding-top: 15px;
-            border-top: 1px solid #1e293b;
-        }
-        .btn-add-group {
-            width: 100%;
-            background: #1e293b;
-            color: #f8fafc;
-            border: 1px dashed #475569;
-            padding: 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            transition: all 0.2s;
-        }
-        .btn-add-group:hover {
-            background: #334155;
-            border-color: #64748b;
-            color: #ffffff;
-        }
+        .btn-delete-group { background: transparent; border: none; color: #64748b; cursor: pointer; font-size: 13px; padding: 8px 10px; border-radius: 4px; transition: all 0.2s; }
+        .btn-delete-group:hover { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
 
-        /* Main content area on the right */
-        .main-content {
-            flex-grow: 1;
-            margin-left: 270px; 
-            padding: 30px 40px;
-            height: 100vh;
-            overflow-y: auto;
-            box-sizing: border-box;
-        }
+        .sidebar-bottom { padding-top: 15px; border-top: 1px solid #1e293b; }
+        .btn-add-group { width: 100%; background: #1e293b; color: #f8fafc; border: 1px dashed #475569; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; }
+        .btn-add-group:hover { background: #334155; border-color: #64748b; color: #ffffff; }
 
-        /* Top action bar */
-        .top-bar { 
-            display: flex; gap: 15px; margin-bottom: 30px; align-items: center; 
-            background: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 1px 5px rgba(0,0,0,0.05);
-        }
+        /* ---------- Main ---------- */
+        .main-content { flex-grow: 1; margin-left: 270px; padding: 30px 40px; height: 100vh; overflow-y: auto; box-sizing: border-box; scroll-behavior: smooth; }
+
+        .top-bar { display: flex; gap: 15px; margin-bottom: 30px; align-items: center; background: white; padding: 15px 20px; border-radius: 8px; box-shadow: 0 1px 5px rgba(0,0,0,0.05); }
         #searchBox { flex-grow: 1; font-size: 15px; padding: 10px 15px; border: 1px solid #cbd5e1; border-radius: 6px; outline: none; }
         #searchBox:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
-        
+
         button { border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
-        .btn-primary { background: #2563eb; color: white; padding: 10px 20px; font-size: 15px; }
+        .btn-primary { background: #2563eb; color: white; padding: 10px 20px; font-size: 15px; white-space: nowrap; }
         .btn-primary:hover { background: #1d4ed8; }
         .btn-success { background: #10b981; color: white; width: 100%; padding: 12px; margin-top: 10px; font-size: 16px; }
-        
-        /* Table action buttons */
+        .btn-success:hover { background: #059669; }
+
         .btn-action { background: transparent; border: none; cursor: pointer; font-size: 16px; padding: 6px; border-radius: 4px; transition: background 0.2s; }
         .btn-action:hover { background: #e2e8f0; }
         .btn-toggle-info { background: #f8fafc; border: 1px solid #cbd5e1; color: #475569; font-size: 12px; padding: 5px 10px; border-radius: 4px; }
         .btn-toggle-info:hover { background: #f1f5f9; }
 
-        /* Category title and table area */
         .category-section { margin-bottom: 40px; scroll-margin-top: 20px; border-radius: 8px; transition: background 0.2s; }
         .category-section.drag-over-section { background: #e0f2fe; box-shadow: inset 0 0 0 2px #2563eb; }
+        .category-title-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; }
+        .category-indicator { width: 4px; height: 20px; background: #2563eb; border-radius: 2px; }
+        .category-title { font-size: 18px; color: #0f172a; font-weight: bold; margin: 0; }
 
-        .category-title-wrap {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .category-indicator {
-            width: 4px;
-            height: 20px;
-            background: #2563eb;
-            border-radius: 2px;
-        }
-        .category-title { 
-            font-size: 18px; color: #0f172a; font-weight: bold; margin: 0;
-        }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.04); }
+        th { background: #1e293b; color: white; padding: 12px 20px; text-align: left; font-size: 13px; font-weight: 500; }
+        td { padding: 14px 20px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; font-size: 14px; }
 
-        /* Table styles */
-        table { 
-            width: 100%; border-collapse: collapse; background: white; 
-            border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.04);
-        }
-        th { 
-            background: #1e293b; 
-            color: white; 
-            padding: 12px 20px; 
-            text-align: left; 
-            font-size: 13px; 
-            font-weight: 500; 
-        }
-        td { 
-            padding: 14px 20px; 
-            border-bottom: 1px solid #e2e8f0; 
-            vertical-align: middle; 
-            font-size: 14px; 
-        }
-        
-        /* Drag and drop row interactive styles */
-        .drag-row { cursor: grab; user-select: none; }
-        .drag-row:active { cursor: grabbing; }
+        .drag-row { user-select: none; }
+        .drag-row[draggable="true"] { cursor: grab; }
+        .drag-row[draggable="true"]:active { cursor: grabbing; }
         .drag-row:hover { background-color: #f8fafc; }
-        .drag-row.important { background-color: #fffbeb; } 
+        .drag-row.important { background-color: #fffbeb; }
         .drag-row.important:hover { background-color: #fef3c7; }
-        
         .drag-row.dragging { opacity: 0.5; background-color: #f1f5f9; }
 
-        /* Content styles within the table */
         .drag-handle { color: #94a3b8; margin-right: 10px; font-weight: bold; }
+        .drag-handle.disabled { opacity: 0.3; }
         .sys-title { font-size: 14px; color: #1e293b; text-decoration: none; font-weight: 600; }
         .sys-title:hover { color: #2563eb; text-decoration: underline; }
         .category-tag { background: #f1f5f9; border: 1px solid #cbd5e1; color: #475569; font-size: 11px; padding: 3px 10px; border-radius: 12px; font-weight: 500; display: inline-block; }
         .td-actions { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
-        .hidden-info { display: none; background: #fff3cd; padding: 10px; border-radius: 6px; font-size: 13px; margin-top: 8px; border: 1px solid #ffeeba; color: #856404; word-break: break-all; }
+        .hidden-info { display: none; background: #fff3cd; padding: 10px; border-radius: 6px; font-size: 13px; margin-top: 8px; border: 1px solid #ffeeba; color: #856404; word-break: break-all; white-space: pre-wrap; }
 
-        /* Modal styles (Updated to include select dropdowns) */
+        /* ---------- Modals ---------- */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(3px); align-items: center; justify-content: center; }
-        .modal-content { background-color: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 420px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; }
-        .modal-content input, .modal-content select { width: 100%; box-sizing: border-box; padding: 12px; margin: 8px 0 20px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; background: white; }
+        .modal-content { background-color: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 420px; max-height: 92vh; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.2); position: relative; box-sizing: border-box; }
+        .modal-content input, .modal-content select { width: 100%; box-sizing: border-box; padding: 12px; margin: 8px 0 18px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; background: white; }
         .modal-content input:focus, .modal-content select:focus { border-color: #2563eb; outline: none; }
         .close-btn { position: absolute; right: 20px; top: 20px; font-size: 24px; color: #94a3b8; cursor: pointer; line-height: 1; }
         .close-btn:hover { color: #ef4444; }
         .form-label { font-size: 13px; font-weight: bold; color: #475569; }
+        .form-hint { font-size: 12px; color: #64748b; margin: -10px 0 16px; }
         .drag-hint { font-size: 13px; color: #64748b; margin-bottom: 0; font-style: italic; }
     </style>
 </head>
 <body>
 
-    <!-- Fixed left menu bar (Dark blue Group table, remains fixed) -->
+    <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-top">
             <h2>🔗 NBT-Link Directory</h2>
@@ -225,23 +120,22 @@
                 <p style="color: #64748b; font-size: 13px;">Loading...</p>
             </div>
         </div>
-        
         <div class="sidebar-bottom">
-            <button class="btn-add-group" onclick="openModal('groupModal')">
+            <button class="btn-add-group" data-action="open-modal" data-modal="groupModal">
                 <span>+ Add Group</span>
             </button>
         </div>
     </div>
 
-    <!-- Main content on the right -->
+    <!-- Main content -->
     <div class="main-content" id="mainContentArea">
-        <h2 style="color: #0f172a; margin-top: 0; margin-bottom: 5px;">NBT Links Directory</h2>
-        <div class="drag-hint">Tip: Drag any row near the top or bottom edge of the screen while dragging to auto-scroll smoothly!</div>
+        <h2 style="color: #0f172a; margin-top: 0; margin-bottom: 5px;">NBT Links Directory (TEST)</h2>
+        <div class="drag-hint" id="dragHint">Tip: Drag a row to reorder it or drop it onto another group. Drag near the top or bottom edge to auto-scroll.</div>
         <br>
 
         <div class="top-bar">
-            <input type="text" id="searchBox" placeholder="🔍 Search systems or tags..." oninput="filterLinks()">
-            <button class="btn-primary" onclick="openModal('addModal')">+ Add New Link</button>
+            <input type="text" id="searchBox" placeholder="🔍 Search systems or tags...">
+            <button class="btn-primary" data-action="open-add">+ Add New Link</button>
         </div>
 
         <div id="linksContainer">
@@ -252,66 +146,70 @@
     <!-- Modal: Add Group -->
     <div id="groupModal" class="modal">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('groupModal')">&times;</span>
+            <span class="close-btn" data-action="close-modal" data-modal="groupModal">&times;</span>
             <h3 style="margin-top: 0; margin-bottom: 20px; color: #0f172a;">+ Add New Group</h3>
-            
+
             <label class="form-label">Group Name *</label>
-            <input type="text" id="newGroupName" placeholder="e.g., Calculators, Dashboards, Systems" required>
-            
-            <button class="btn-success" onclick="addGroup()">Create Group</button>
+            <input type="text" id="newGroupName" placeholder="e.g., Calculators, Dashboards, Systems">
+
+            <button class="btn-success" data-action="add-group">Create Group</button>
         </div>
     </div>
 
     <!-- Modal: Add Link -->
     <div id="addModal" class="modal">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('addModal')">&times;</span>
+            <span class="close-btn" data-action="close-modal" data-modal="addModal">&times;</span>
             <h3 style="margin-top: 0; margin-bottom: 20px; color: #2563eb;">+ Add New Link</h3>
-            
+
             <label class="form-label">System Name *</label>
-            <input type="text" id="linkName" placeholder="e.g., HR Portal" required>
-            
+            <input type="text" id="linkName" placeholder="e.g., HR Portal">
+
             <label class="form-label">URL / Website Link *</label>
-            <input type="url" id="linkUrl" placeholder="https://..." required>
-            
+            <input type="url" id="linkUrl" placeholder="https://...">
+
+            <label class="form-label">Group</label>
+            <select id="linkGroup"></select>
+
             <label class="form-label">Department / Tag (Optional)</label>
             <input type="text" id="linkCategory" placeholder="e.g., Emulsion, HR, Logistics">
-            
+
             <label class="form-label">Login Info / Remarks (Hidden by default)</label>
-            <input type="text" id="loginInfo" placeholder="e.g., [shiuank:123456]">
-            
+            <input type="text" id="loginInfo" placeholder="e.g., [username:password]">
+            <div class="form-hint">Login info is hidden. A password is needed to view it.</div>
+
             <label class="form-label">Added by *</label>
-            <input type="text" id="userName" placeholder="Your Name" required>
-            
-            <button class="btn-success" onclick="addLink()">Save Link</button>
+            <input type="text" id="userName" placeholder="Your Name">
+
+            <button class="btn-success" data-action="add-link">Save Link</button>
         </div>
     </div>
 
     <!-- Modal: Edit Link -->
     <div id="editModal" class="modal">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeModal('editModal')">&times;</span>
+            <span class="close-btn" data-action="close-modal" data-modal="editModal">&times;</span>
             <h3 style="margin-top: 0; margin-bottom: 20px; color: #2563eb;">Edit Link</h3>
-            
+
             <input type="hidden" id="editLinkId">
 
             <label class="form-label">System Name *</label>
-            <input type="text" id="editLinkName" required>
-            
+            <input type="text" id="editLinkName">
+
             <label class="form-label">URL / Website Link *</label>
-            <input type="url" id="editLinkUrl" required>
-            
-            <!-- 新增的 Group 下拉菜单 -->
+            <input type="url" id="editLinkUrl">
+
             <label class="form-label">Group / Category *</label>
             <select id="editLinkGroup"></select>
-            
+
             <label class="form-label">Department / Tag</label>
             <input type="text" id="editLinkCategory">
-            
+
             <label class="form-label">Update Login Info (Leave blank if no change)</label>
             <input type="text" id="editLoginInfo" placeholder="Enter new details to overwrite">
-            
-            <button class="btn-success" onclick="saveEditedLink()">Update Link</button>
+            <div class="form-hint">Login info is hidden. A password is needed to view it.</div>
+
+            <button class="btn-success" data-action="save-edit">Update Link</button>
         </div>
     </div>
 
@@ -320,58 +218,100 @@
         const SUPABASE_KEY = 'sb_publishable_98O37WT0nSZVw2I9128JOg___CX38Dn';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+        const TABLE = 'nbt_home';
+        const GROUPS_KEY = 'nbt_custom_groups_test';
+        const DEFAULT_GROUPS = ['Calculators', 'Dashboards', 'Core Systems'];
+        const LINK_COLUMNS = 'id, name, url, category, created_by, created_at, priority, sort_order, group_name';
+
+        // ---------- state ----------
         let allLinks = [];
-        let customGroups = JSON.parse(localStorage.getItem('nbt_custom_groups')) || ['Calculators', 'Dashboards', 'Core Systems'];
+        let isFiltering = false;
+        let customGroups = loadGroups();
 
         let draggedCardId = null;
         let scrollInterval = null;
-
-        function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
-        function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
-        
-        window.onclick = function(event) {
-            if (event.target == document.getElementById('addModal')) closeModal('addModal');
-            if (event.target == document.getElementById('editModal')) closeModal('editModal');
-            if (event.target == document.getElementById('groupModal')) closeModal('groupModal');
-        }
+        let isSaving = false;              // true while writing order/pin/group changes
+        let fetchSeq = 0;                  // ignore stale fetch responses
+        let lastSig = '';                  // detects changes when polling
 
         // ---------- helpers ----------
         const sameId = (a, b) => String(a) === String(b);
-        let isSaving = false;       // true while we are writing order/pin/group changes
-        let fetchSeq = 0;           // ignore stale fetch responses
-        let refreshTimer = null;
 
-        function scheduleRefresh() {
-            // Debounced: many DB writes => many realtime events => ONE refetch
-            clearTimeout(refreshTimer);
-            refreshTimer = setTimeout(() => { if (!isSaving) fetchLinks(); }, 500);
+        function esc(s) {
+            return String(s ?? '')
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+        function safeUrl(u) { return /^https?:\/\//i.test(u || '') ? u : '#'; }
+        function isHttpUrl(u) { return /^https?:\/\//i.test(u || ''); }
+        function isPasswordError(err) { return /password/i.test((err && err.message) || ''); }
+
+        function loadGroups() {
+            try {
+                const g = JSON.parse(localStorage.getItem(GROUPS_KEY));
+                if (Array.isArray(g)) return g;
+            } catch (e) { /* ignore */ }
+            return DEFAULT_GROUPS.slice();
+        }
+        function saveGroups() {
+            try { localStorage.setItem(GROUPS_KEY, JSON.stringify(customGroups)); } catch (e) { /* ignore */ }
         }
 
-        async function fetchLinks() {
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+        function fillGroupSelect(selectEl, selected) {
+            selectEl.innerHTML = '';
+            const names = ['Unassigned', ...customGroups.filter(g => g !== 'Unassigned')];
+            names.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g;
+                opt.textContent = '📁 ' + g;
+                selectEl.appendChild(opt);
+            });
+            selectEl.value = selected || 'Unassigned';
+        }
+
+        function compareLinks(a, b) {
+            const pa = a.priority || 0, pb = b.priority || 0;
+            if (pa !== pb) return pb - pa;
+            const sa = a.sort_order ?? Infinity, sb = b.sort_order ?? Infinity;
+            if (sa !== sb) return sa < sb ? -1 : 1;
+            return String(a.name).localeCompare(String(b.name));
+        }
+
+        // ---------- data ----------
+        async function fetchLinks(onlyIfChanged = false) {
             const mySeq = ++fetchSeq;
             const { data, error } = await supabaseClient
-                .from('company_links')
-                .select('id, name, url, category, created_by, created_at, priority, sort_order,group_name') 
+                .from(TABLE)
+                .select(LINK_COLUMNS)
                 .order('priority', { ascending: false })
                 .order('sort_order', { ascending: true, nullsFirst: false })
                 .order('name', { ascending: true });
 
-            if (mySeq !== fetchSeq) return; // a newer fetch / local change superseded this one
+            if (mySeq !== fetchSeq) return;
             if (error) {
-                console.error("Fetch error:", error);
-                document.getElementById('linksContainer').innerHTML = `<p style="color:red;">Error loading data: ${error.message}</p>`;
+                console.error('Fetch error:', error);
+                const p = document.createElement('p');
+                p.style.color = 'red';
+                p.textContent = 'Error loading data: ' + error.message;
+                const c = document.getElementById('linksContainer');
+                c.innerHTML = '';
+                c.appendChild(p);
                 return;
             }
-            allLinks = data;
+            const sorted = data.slice().sort(compareLinks);
+            const sig = JSON.stringify(sorted);
+            if (onlyIfChanged && sig === lastSig) return;   // nothing changed: keep the page as is
+            lastSig = sig;
+            allLinks = sorted;
             filterLinks();
         }
 
-        // Single source of truth for order:
-        //  1) pinned (priority > 0) always first
-        //  2) otherwise keep the CURRENT array order (stable sort)
-        // then write sort_order = 1..N plus any extra field changes in parallel.
+        // pinned first, then current array order; writes sort_order (+ any extra changes)
         async function persistOrder(extraChanges = {}) {
-            fetchSeq++;            // invalidate any in-flight fetch that would overwrite local state
+            fetchSeq++;
             isSaving = true;
             allLinks.sort((a, b) => (b.priority || 0) - (a.priority || 0)); // stable
             const jobs = [];
@@ -382,31 +322,31 @@
                     changes.sort_order = i + 1;
                 }
                 if (Object.keys(changes).length) {
-                    jobs.push(supabaseClient.from('company_links').update(changes).eq('id', link.id));
+                    jobs.push(supabaseClient.from(TABLE).update(changes).eq('id', link.id));
                 }
             });
-            filterLinks(); // re-render immediately (keeps search filter)
+            filterLinks();
             try {
                 const results = await Promise.all(jobs);
                 const failed = results.find(r => r.error);
                 if (failed) {
-                    console.error("Failed to save order:", failed.error);
-                    alert("Failed to save: " + failed.error.message);
+                    console.error('Failed to save order:', failed.error);
+                    alert('Failed to save: ' + failed.error.message);
                 }
             } finally {
                 isSaving = false;
             }
-            fetchLinks(); // reconcile with DB once, after all writes are done
+            fetchLinks();
         }
 
-        // Render page and left navigation
+        // ---------- render ----------
         function renderLinks(links) {
             const container = document.getElementById('linksContainer');
             const sidebar = document.getElementById('sidebarMenu');
-            container.innerHTML = ''; 
+            container.innerHTML = '';
             sidebar.innerHTML = '';
 
-            // Register any group found in the DB (e.g. created on another PC) BEFORE bucketing
+            // register groups found in the DB (e.g. created on another PC)
             let groupsChanged = false;
             allLinks.forEach(l => {
                 const g = l.group_name;
@@ -415,7 +355,7 @@
                     groupsChanged = true;
                 }
             });
-            if (groupsChanged) localStorage.setItem('nbt_custom_groups', JSON.stringify(customGroups));
+            if (groupsChanged) saveGroups();
 
             const groupMap = {};
             customGroups.forEach(g => { groupMap[g] = []; });
@@ -428,30 +368,29 @@
             });
             const groupKeys = ['Unassigned', ...customGroups.filter(g => g !== 'Unassigned')];
 
-            groupKeys.forEach(groupName => {
-                const safeId = "group-" + groupName.replace(/\s+/g, '-').toLowerCase();
-                const itemsCount = groupMap[groupName].length;
+            groupKeys.forEach((groupName, gi) => {
+                const sectionId = 'group-' + gi;
+                const items = groupMap[groupName];
+                const itemsCount = items.length;
 
-                let deleteGroupBtn = '';
-                if (groupName !== 'Unassigned') {
-                    deleteGroupBtn = `<button class="btn-delete-group" onclick="deleteGroup(event, ${JSON.stringify(groupName).replace(/"/g, '&quot;')})" title="Delete Group">🗑️</button>`;
-                }
+                const deleteGroupBtn = groupName !== 'Unassigned'
+                    ? `<button class="btn-delete-group" data-action="delete-group" data-group="${esc(groupName)}" title="Delete Group">🗑️</button>`
+                    : '';
 
-                sidebar.innerHTML += `
+                sidebar.insertAdjacentHTML('beforeend', `
                     <div class="sidebar-group-item">
-                        <a href="#${safeId}" class="sidebar-link">
-                            <span>📁 ${groupName}</span>
+                        <a href="#${sectionId}" class="sidebar-link">
+                            <span>📁 ${esc(groupName)}</span>
                             <span class="badge">${itemsCount}</span>
                         </a>
                         ${deleteGroupBtn}
                     </div>
-                `;
+                `);
 
                 const section = document.createElement('div');
                 section.className = 'category-section';
-                section.id = safeId;
+                section.id = sectionId;
                 section.dataset.groupName = groupName;
-
                 section.addEventListener('dragover', handleDragOver);
                 section.addEventListener('dragleave', handleDragLeave);
                 section.addEventListener('drop', handleDrop);
@@ -459,7 +398,7 @@
                 section.innerHTML = `
                     <div class="category-title-wrap">
                         <div class="category-indicator"></div>
-                        <h3 class="category-title">${groupName}</h3>
+                        <h3 class="category-title">${esc(groupName)}</h3>
                     </div>
                     <table>
                         <thead>
@@ -473,43 +412,52 @@
                         <tbody></tbody>
                     </table>
                 `;
-                
+
                 const tbody = section.querySelector('tbody');
 
                 if (itemsCount === 0) {
                     const emptyTr = document.createElement('tr');
-                    emptyTr.innerHTML = `<td colspan="4" style="text-align: center; color: #94a3b8; font-style: italic; padding: 20px;">Drag links here to add them to ${groupName}.</td>`;
+                    const td = document.createElement('td');
+                    td.colSpan = 4;
+                    td.style.cssText = 'text-align:center;color:#94a3b8;font-style:italic;padding:20px;';
+                    td.textContent = isFiltering
+                        ? 'No matching links.'
+                        : 'Drag links here to add them to ' + groupName + '.';
+                    emptyTr.appendChild(td);
                     tbody.appendChild(emptyTr);
                 } else {
-                    groupMap[groupName].forEach(link => {
+                    items.forEach(link => {
                         const isImportant = link.priority > 0;
-                        const tr = document.createElement('tr');
-                        tr.className = isImportant ? 'drag-row important' : 'drag-row';
-                        tr.setAttribute('draggable', 'true');
-                        tr.dataset.id = link.id;
+                        const canDrag = !isFiltering;
 
-                        tr.addEventListener('dragstart', handleDragStart);
-                        tr.addEventListener('dragend', handleDragEnd);
+                        const tr = document.createElement('tr');
+                        tr.className = 'drag-row' + (isImportant ? ' important' : '');
+                        tr.draggable = canDrag;
+                        tr.dataset.id = link.id;
+                        if (canDrag) {
+                            tr.addEventListener('dragstart', handleDragStart);
+                            tr.addEventListener('dragend', handleDragEnd);
+                        }
 
                         tr.innerHTML = `
                             <td>
-                                <span class="drag-handle">☰</span>
-                                <a href="${link.url}" target="_blank" class="sys-title">${link.name}</a>
+                                <span class="drag-handle${canDrag ? '' : ' disabled'}">☰</span>
+                                <a href="${esc(safeUrl(link.url))}" target="_blank" rel="noopener noreferrer" class="sys-title">${esc(link.name)}</a>
                                 <span style="font-size:12px; color:#2563eb; margin-left:6px;">↗</span>
                             </td>
                             <td>
-                                <span class="category-tag">${link.category || 'General'}</span>
+                                <span class="category-tag">${esc(link.category || 'General')}</span>
                             </td>
                             <td>
-                                <button class="btn-toggle-info" onclick="fetchAndShowInfo('${link.id}')">Show Info / Login</button>
-                                <div id="info-${link.id}" class="hidden-info"></div>
+                                <button class="btn-toggle-info" data-action="info" data-id="${esc(link.id)}">Show Info / Login</button>
+                                <div class="hidden-info"></div>
                             </td>
                             <td class="td-actions">
-                                <button class="btn-action" title="${isImportant ? 'Unpin' : 'Pin'}" onclick="toggleImportant('${link.id}')">
+                                <button class="btn-action" title="${isImportant ? 'Unpin' : 'Pin'}" data-action="pin" data-id="${esc(link.id)}">
                                     ${isImportant ? '📌' : '🔘'}
                                 </button>
-                                <button class="btn-action" title="Edit" onclick="openEditForm('${link.id}')">✏️</button>
-                                <button class="btn-action" title="Delete" onclick="deleteLink('${link.id}')">🗑️</button>
+                                <button class="btn-action" title="Edit" data-action="edit" data-id="${esc(link.id)}">✏️</button>
+                                <button class="btn-action" title="Delete" data-action="delete" data-id="${esc(link.id)}">🗑️</button>
                             </td>
                         `;
                         tbody.appendChild(tr);
@@ -520,66 +468,65 @@
             });
         }
 
-        // Add new group
-        function addGroup() {
-            const groupName = document.getElementById('newGroupName').value.trim();
-            if (!groupName) {
-                alert("Please enter a group name!");
-                return;
-            }
-            if (!customGroups.includes(groupName)) {
-                customGroups.push(groupName);
-                localStorage.setItem('nbt_custom_groups', JSON.stringify(customGroups));
-            }
-            document.getElementById('newGroupName').value = '';
-            closeModal('groupModal');
-            renderLinks(allLinks);
+        function filterLinks() {
+            const keyword = document.getElementById('searchBox').value.trim().toLowerCase();
+            isFiltering = keyword !== '';
+            document.getElementById('dragHint').textContent = isFiltering
+                ? 'Clear the search box to drag and reorder links.'
+                : 'Tip: Drag a row to reorder it or drop it onto another group. Drag near the top or bottom edge to auto-scroll.';
+            const filtered = allLinks.filter(link =>
+                String(link.name).toLowerCase().includes(keyword) ||
+                (link.category && String(link.category).toLowerCase().includes(keyword))
+            );
+            renderLinks(filtered);
         }
 
-        // Delete group (Updated to sync with Supabase cloud)
-        async function deleteGroup(event, groupName) {
-            event.stopPropagation();
-            if (!confirm(`Are you sure you want to delete group "${groupName}"? Links inside this group will be moved back to Unassigned.`)) {
+        // ---------- groups ----------
+        function addGroup() {
+            const input = document.getElementById('newGroupName');
+            const groupName = input.value.trim();
+            if (!groupName) { alert('Please enter a group name!'); return; }
+            if (groupName === 'Unassigned') { alert('"Unassigned" is reserved.'); return; }
+            if (!customGroups.includes(groupName)) {
+                customGroups.push(groupName);
+                saveGroups();
+            }
+            input.value = '';
+            closeModal('groupModal');
+            filterLinks();
+        }
+
+        async function deleteGroup(groupName) {
+            if (!confirm(`Delete group "${groupName}"? Links inside will be moved back to Unassigned.`)) return;
+
+            const { error } = await supabaseClient
+                .from(TABLE)
+                .update({ group_name: null })
+                .eq('group_name', groupName);
+            if (error) {
+                alert('Failed to delete group: ' + error.message);
                 return;
             }
 
             customGroups = customGroups.filter(g => g !== groupName);
-            localStorage.setItem('nbt_custom_groups', JSON.stringify(customGroups));
-
-            // Move local links to Unassigned
-            allLinks.forEach(link => {
-                if (link.group_name === groupName) {
-                    link.group_name = null;
-                }
-            });
-
-            // Sync with Supabase cloud: Set group_name to null for all links in this group
-            const { error } = await supabaseClient
-                .from('company_links')
-                .update({ group_name: null })
-                .eq('group_name', groupName);
-                
-            if (error) {
-                console.error("Failed to sync group deletion with database:", error);
-            }
-
-            renderLinks(allLinks);
+            saveGroups();
+            allLinks.forEach(l => { if (l.group_name === groupName) l.group_name = null; });
+            filterLinks();
+            fetchLinks();
         }
 
-        // Drag and drop event handling
+        // ---------- drag & drop ----------
         function handleDragStart(e) {
             draggedCardId = this.dataset.id;
             this.classList.add('dragging');
             e.dataTransfer.effectAllowed = 'move';
+            try { e.dataTransfer.setData('text/plain', draggedCardId); } catch (err) { /* ignore */ }
         }
 
         const mainContentArea = document.getElementById('mainContentArea');
 
         function clearScrollInterval() {
-            if (scrollInterval) {
-                clearInterval(scrollInterval);
-                scrollInterval = null;
-            }
+            if (scrollInterval) { clearInterval(scrollInterval); scrollInterval = null; }
         }
 
         mainContentArea.addEventListener('dragover', (e) => {
@@ -587,16 +534,12 @@
             e.dataTransfer.dropEffect = 'move';
 
             const section = e.target.closest('.category-section');
-            document.querySelectorAll('.category-section').forEach(sec => {
-                sec.classList.remove('drag-over-section');
-            });
-            if (section) {
-                section.classList.add('drag-over-section');
-            }
+            document.querySelectorAll('.category-section').forEach(sec => sec.classList.remove('drag-over-section'));
+            if (section) section.classList.add('drag-over-section');
 
             const rect = mainContentArea.getBoundingClientRect();
             const mouseY = e.clientY;
-            const threshold = 90; 
+            const threshold = 90;
 
             if (mouseY - rect.top < threshold) {
                 if (!scrollInterval) scrollInterval = setInterval(() => { mainContentArea.scrollTop -= 20; }, 20);
@@ -610,7 +553,7 @@
         function handleDragOver(e) { e.preventDefault(); }
         function handleDragLeave(e) {
             const section = e.target.closest('.category-section');
-            if (section) section.classList.remove('drag-over-section');
+            if (section && !section.contains(e.relatedTarget)) section.classList.remove('drag-over-section');
         }
 
         async function handleDrop(e) {
@@ -619,6 +562,7 @@
             const section = e.target.closest('.category-section');
             if (!section) return;
             section.classList.remove('drag-over-section');
+            if (isFiltering || draggedCardId === null) return;
 
             const targetGroup = section.dataset.groupName;
             const newGroupName = targetGroup === 'Unassigned' ? null : targetGroup;
@@ -638,10 +582,10 @@
             if (targetRow && !sameId(targetRow.dataset.id, moved.id)) {
                 targetIndex = allLinks.findIndex(l => sameId(l.id, targetRow.dataset.id));
             }
-            if (targetIndex >= 0) allLinks.splice(targetIndex, 0, moved); // drop ON a row => insert before it
-            else allLinks.push(moved);                                    // drop on empty area => end of group
+            if (targetIndex >= 0) allLinks.splice(targetIndex, 0, moved);
+            else allLinks.push(moved);
 
-            await persistOrder(extra); // pinned stay on top, order + group saved together
+            await persistOrder(extra);
         }
 
         function handleDragEnd() {
@@ -651,40 +595,53 @@
             document.querySelectorAll('.category-section').forEach(sec => sec.classList.remove('drag-over-section'));
         }
 
-        function filterLinks() {
-            const keyword = document.getElementById('searchBox').value.toLowerCase();
-            const filtered = allLinks.filter(link => 
-                link.name.toLowerCase().includes(keyword) || 
-                (link.category && link.category.toLowerCase().includes(keyword))
-            );
-            renderLinks(filtered);
-        }
-
-        async function fetchAndShowInfo(linkId) {
-            const infoDiv = document.getElementById(`info-${linkId}`);
+        // ---------- login info (secret) ----------
+        async function fetchAndShowInfo(btn, linkId) {
+            const infoDiv = btn.closest('td').querySelector('.hidden-info');
             if (infoDiv.style.display === 'block') {
                 infoDiv.style.display = 'none';
+                infoDiv.textContent = '';
                 return;
             }
 
-            const pass = prompt("Enter Password Please:");
-            if (!pass) return; 
+            const pass = prompt('Enter password to view login info:');
+            if (!pass) return;
 
             infoDiv.style.display = 'block';
-            infoDiv.innerHTML = '<span style="color:#6c757d;">Verifying...</span>';
+            infoDiv.textContent = 'Verifying...';
 
-            const { data, error } = await supabaseClient.rpc('verify_and_get_secret', { 
-                link_id_param: linkId, 
-                provided_pass: pass 
+            const { data, error } = await supabaseClient.rpc('nbt_home_verify_and_get_secret', {
+                link_id_param: String(linkId),
+                provided_pass: pass
             });
 
             if (error) {
-                infoDiv.innerHTML = '<span style="color:red;">Password Incorrect!</span>';
+                infoDiv.textContent = isPasswordError(error) ? 'Incorrect password!' : 'Error: ' + error.message;
             } else if (!data) {
-                infoDiv.innerHTML = '<span style="color:#856404;">No login info found.</span>';
+                infoDiv.textContent = 'No login info found.';
             } else {
-                infoDiv.innerHTML = data;
+                infoDiv.textContent = data;   // textContent: never render as HTML
             }
+        }
+
+        // returns true if saved (or nothing to save). No password needed to save.
+        async function saveSecret(linkId, loginInfo) {
+            if (!loginInfo) return true;
+            const { error } = await supabaseClient.rpc('nbt_home_save_link_secret', {
+                link_id_param: String(linkId),
+                info: loginInfo
+            });
+            if (error) {
+                alert('Login info was NOT saved: ' + error.message);
+                return false;
+            }
+            return true;
+        }
+
+        // ---------- add / edit / delete ----------
+        function openAddForm() {
+            fillGroupSelect(document.getElementById('linkGroup'), 'Unassigned');
+            openModal('addModal');
         }
 
         async function addLink() {
@@ -693,40 +650,35 @@
             const category = document.getElementById('linkCategory').value.trim() || 'General';
             const loginInfo = document.getElementById('loginInfo').value.trim();
             const user = document.getElementById('userName').value.trim();
-            
-            const newSortOrder = allLinks.length ? Math.min(...allLinks.map(l => l.sort_order || 0)) - 1 : 1; // top of its tier
+            const selectedGroup = document.getElementById('linkGroup').value;
+            const groupName = selectedGroup === 'Unassigned' ? null : selectedGroup;
 
             if (!name || !url || !user) {
-                alert("Please fill in System Name, URL and Your Name!");
+                alert('Please fill in System Name, URL and Your Name!');
+                return;
+            }
+            if (!isHttpUrl(url)) {
+                alert('URL must start with http:// or https://');
                 return;
             }
 
-            const { data: linkData, error: linkError } = await supabaseClient
-                .from('company_links')
-                .insert([{ name: name, url: url, created_by: user, priority: 0, category: category, sort_order: newSortOrder }])
-                .select(); 
+            const newSortOrder = allLinks.length ? Math.min(...allLinks.map(l => l.sort_order ?? 0)) - 1 : 1;
+            const { data, error } = await supabaseClient
+                .from(TABLE)
+                .insert([{ name, url, category, created_by: user, priority: 0, sort_order: newSortOrder, group_name: groupName }])
+                .select('id');
+            if (error) { alert('Failed to add link: ' + error.message); return; }
 
-            if (linkError) {
-                alert("Failed to add link: " + linkError.message);
-                return;
-            }
+            const created = data && data[0];
+            if (created) await saveSecret(created.id, loginInfo);
 
-            if (loginInfo && linkData && linkData.length > 0) {
-                const newLinkId = linkData[0].id;
-                await supabaseClient.from('link_secrets').insert([{ link_id: newLinkId, login_info: loginInfo }]);
-            }
-
-            document.getElementById('linkName').value = '';
-            document.getElementById('linkUrl').value = '';
-            document.getElementById('linkCategory').value = '';
-            document.getElementById('loginInfo').value = '';
-            document.getElementById('userName').value = '';
+            ['linkName', 'linkUrl', 'linkCategory', 'loginInfo', 'userName'].forEach(id => { document.getElementById(id).value = ''; });
             closeModal('addModal');
-            fetchLinks(); 
+            fetchLinks();
         }
 
-        async function openEditForm(id) {
-            const link = allLinks.find(l => l.id === id);
+        function openEditForm(id) {
+            const link = allLinks.find(l => sameId(l.id, id));
             if (!link) return;
 
             document.getElementById('editLinkId').value = link.id;
@@ -734,14 +686,7 @@
             document.getElementById('editLinkUrl').value = link.url;
             document.getElementById('editLinkCategory').value = link.category || '';
             document.getElementById('editLoginInfo').value = '';
-
-            // Populate the Dropdown with available groups
-            const groupSelect = document.getElementById('editLinkGroup');
-            groupSelect.innerHTML = `<option value="Unassigned">📁 Unassigned</option>`;
-            customGroups.forEach(g => {
-                groupSelect.innerHTML += `<option value="${g}">📁 ${g}</option>`;
-            });
-            groupSelect.value = link.group_name || 'Unassigned';
+            fillGroupSelect(document.getElementById('editLinkGroup'), link.group_name || 'Unassigned');
 
             openModal('editModal');
         }
@@ -751,41 +696,20 @@
             const name = document.getElementById('editLinkName').value.trim();
             const url = document.getElementById('editLinkUrl').value.trim();
             const category = document.getElementById('editLinkCategory').value.trim();
-            
-            // Get selected group from dropdown
             const selectedGroup = document.getElementById('editLinkGroup').value;
-            const newGroupName = selectedGroup === 'Unassigned' ? null : selectedGroup;
-            
+            const groupName = selectedGroup === 'Unassigned' ? null : selectedGroup;
             const newLoginInfo = document.getElementById('editLoginInfo').value.trim();
 
-            if (!name || !url) {
-                alert("Name and URL cannot be empty!");
-                return;
-            }
+            if (!name || !url) { alert('Name and URL cannot be empty!'); return; }
+            if (!isHttpUrl(url)) { alert('URL must start with http:// or https://'); return; }
 
-            const { error: linkError } = await supabaseClient
-                .from('company_links')
-                .update({ name: name, url: url, category: category, group_name: newGroupName })
+            const { error } = await supabaseClient
+                .from(TABLE)
+                .update({ name, url, category, group_name: groupName })
                 .eq('id', id);
+            if (error) { alert('Failed to update link: ' + error.message); return; }
 
-            if (linkError) {
-                alert("Failed to update link: " + linkError.message);
-                return;
-            }
-
-            if (newLoginInfo !== '') {
-                const { data: existingSecret } = await supabaseClient
-                    .from('link_secrets')
-                    .select('id')
-                    .eq('link_id', id)
-                    .single();
-
-                if (existingSecret) {
-                    await supabaseClient.from('link_secrets').update({ login_info: newLoginInfo }).eq('link_id', id);
-                } else {
-                    await supabaseClient.from('link_secrets').insert([{ link_id: id, login_info: newLoginInfo }]);
-                }
-            }
+            await saveSecret(id, newLoginInfo);
 
             closeModal('editModal');
             fetchLinks();
@@ -796,40 +720,59 @@
             if (!item) return;
             item.priority = (item.priority || 0) > 0 ? 0 : 10;
 
-            // Move to the very front: first among pinned (if pinned) / first among unpinned (if unpinned).
-            // persistOrder's stable pinned-first sort does the rest, and saves sort_order for everyone.
             allLinks.splice(allLinks.indexOf(item), 1);
             allLinks.unshift(item);
 
             await persistOrder({ [item.id]: { priority: item.priority } });
         }
 
-           async function deleteLink(id) {
-                const pass = prompt("Delete requires admin password:");
-                if (!pass) return;
-    
-                if (!confirm("Are you sure you want to delete this link?")) return;
-    
-                const { error } = await supabaseClient.rpc('delete_link_securely', { 
-                    link_id_param: id, 
-                    provided_pass: pass 
-                });
-
+        async function deleteLink(id) {
+            if (!confirm('Are you sure you want to delete this link?')) return;
+            const { error } = await supabaseClient.from(TABLE).delete().eq('id', id);
             if (error) {
-                alert("Action Cancelled / Password Incorrect.");
-            } else {
-                fetchLinks(); 
+                alert('Failed to delete: ' + error.message);
+                return;
             }
+            fetchLinks();
         }
-        
-        supabaseClient
-            .channel('public:company_links')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'company_links' }, (payload) => {
-                scheduleRefresh();
-            })
-            .subscribe();
-            
-        window.onload = fetchLinks;
+
+        // ---------- events ----------
+        document.addEventListener('click', (e) => {
+            // click on modal backdrop closes it
+            if (e.target.classList && e.target.classList.contains('modal')) {
+                e.target.style.display = 'none';
+                return;
+            }
+            const el = e.target.closest('[data-action]');
+            if (!el) return;
+            const id = el.dataset.id;
+
+            switch (el.dataset.action) {
+                case 'open-modal':   openModal(el.dataset.modal); break;
+                case 'close-modal':  closeModal(el.dataset.modal); break;
+                case 'open-add':     openAddForm(); break;
+                case 'add-group':    addGroup(); break;
+                case 'add-link':     addLink(); break;
+                case 'save-edit':    saveEditedLink(); break;
+                case 'info':         fetchAndShowInfo(el, id); break;
+                case 'pin':          toggleImportant(id); break;
+                case 'edit':         openEditForm(id); break;
+                case 'delete':       deleteLink(id); break;
+                case 'delete-group': deleteGroup(el.dataset.group); break;
+            }
+        });
+
+        document.getElementById('searchBox').addEventListener('input', filterLinks);
+
+        // auto-refresh by polling (no realtime, so rows are never broadcast)
+        function pollLinks() {
+            if (document.hidden || isSaving || draggedCardId !== null) return;
+            fetchLinks(true);
+        }
+        setInterval(pollLinks, 30000);
+        document.addEventListener('visibilitychange', pollLinks);
+
+        fetchLinks();
     </script>
 </body>
 </html>
